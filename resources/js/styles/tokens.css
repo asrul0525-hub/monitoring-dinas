@@ -1,0 +1,200 @@
+:root {
+    --bg-canvas-start: #0B1220;
+    --bg-canvas-end: #05070D;
+    --bg-bloom: rgba(77, 163, 255, 0.08);
+    --bg-glass: rgba(18, 26, 43, 0.68);
+    --bg-card: #121A2B;
+    --bg-table: #0F1626;
+    --bg-elevated: #172238;
+    --bg-scrim: rgba(5, 7, 13, 0.60);
+
+    --border-subtle: rgba(255, 255, 255, 0.10);
+    --border-strong: #314772;
+
+    --text-primary: #E6EBF5;
+    --text-secondary: #9AA6BD;
+
+    --accent: #4DA3FF;
+    --accent-fg: #07101F;
+    --accent-soft: rgba(77, 163, 255, 0.14);
+
+    --status-aktif: #34D399;
+    --status-aktif-bg: rgba(52, 211, 153, 0.12);
+    --status-aktif-border: rgba(52, 211, 153, 0.35);
+
+    --status-kurang: #FBBF24;
+    --status-kurang-bg: rgba(251, 191, 36, 0.12);
+    --status-kurang-border: rgba(251, 191, 36, 0.35);
+
+    --status-tidak: #F87171;
+    --status-tidak-bg: rgba(248, 113, 113, 0.12);
+    --status-tidak-border: rgba(248, 113, 113, 0.35);
+
+    --status-menunggu: #94A3B8;
+    --status-menunggu-bg: rgba(148, 163, 184, 0.12);
+    --status-menunggu-border: rgba(148, 163, 184, 0.35);
+
+    --shadow-shell: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+:root.light {
+    --bg-canvas-start: #EEF2F8;
+    --bg-canvas-end: #E2E8F0;
+    --bg-bloom: rgba(29, 78, 216, 0.06);
+    --bg-glass: rgba(255, 255, 255, 0.78);
+    --bg-card: #FFFFFF;
+    --bg-table: #FFFFFF;
+    --bg-elevated: #F1F5F9;
+    --bg-scrim: rgba(15, 23, 42, 0.45);
+
+    --border-subtle: #E2E8F0;
+    --border-strong: #64748B;
+
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+
+    --accent: #1D4ED8;
+    --accent-fg: #FFFFFF;
+    --accent-soft: rgba(29, 78, 216, 0.10);
+
+    --status-aktif: #047857;
+    --status-aktif-bg: #ECFDF5;
+    --status-aktif-border: #6EE7B7;
+
+    --status-kurang: #B45309;
+    --status-kurang-bg: #FFFBEB;
+    --status-kurang-border: #FCD34D;
+
+    --status-tidak: #B91C1C;
+    --status-tidak-bg: #FEF2F2;
+    --status-tidak-border: #FCA5A5;
+
+    --status-menunggu: #334155;
+    --status-menunggu-bg: #F1F5F9;
+    --status-menunggu-border: #CBD5E1;
+
+    --shadow-shell: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+body {
+    background:
+        radial-gradient(circle at 12% 8%, var(--bg-bloom), transparent 45%),
+        linear-gradient(160deg, var(--bg-canvas-start) 0%, var(--bg-canvas-end) 100%);
+    color: var(--text-primary);
+    min-height: 100vh;
+    min-width: 1366px;
+}
+
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Glass rule: ONLY applied to the 4 shell elements (TopBar, RailNav, StatusTabs, Slide-over Panel) */
+.glass-shell {
+    background: var(--bg-glass);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-shell);
+}
+
+.surface-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+}
+
+.surface-table {
+    background: var(--bg-table);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+}
+
+.surface-elevated {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+}
+
+.btn-primary-pill {
+    background: var(--accent);
+    color: var(--accent-fg);
+    border-radius: 9999px;
+    font-weight: 600;
+    transition: opacity 150ms ease;
+}
+
+.btn-primary-pill:hover:not(:disabled) {
+    opacity: 0.92;
+}
+
+.btn-primary-pill:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.input-control {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+}
+
+.input-control::placeholder {
+    color: var(--text-secondary);
+}
+
+.input-control:focus-visible,
+button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.status-badge--aktif {
+    background: var(--status-aktif-bg);
+    color: var(--status-aktif);
+    border: 1px solid var(--status-aktif-border);
+}
+
+.status-dot--aktif {
+    background: var(--status-aktif);
+}
+
+.status-badge--kurang {
+    background: var(--status-kurang-bg);
+    color: var(--status-kurang);
+    border: 1px solid var(--status-kurang-border);
+}
+
+.status-dot--kurang {
+    background: var(--status-kurang);
+}
+
+.status-badge--tidak {
+    background: var(--status-tidak-bg);
+    color: var(--status-tidak);
+    border: 1px solid var(--status-tidak-border);
+}
+
+.status-dot--tidak {
+    background: var(--status-tidak);
+}
+
+.status-badge--menunggu {
+    background: var(--status-menunggu-bg);
+    color: var(--status-menunggu);
+    border: 1px solid var(--status-menunggu-border);
+}
+
+.status-dot--menunggu {
+    background: var(--status-menunggu);
+}

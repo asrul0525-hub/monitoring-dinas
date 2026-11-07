@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AlertSeenController;
 use App\Http\Controllers\InstansiCheckController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,7 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::post('/instansi/{instansi}/cek', [InstansiCheckController::class, 'checkOne'])->name('instansi.cek');
     Route::post('/cek-semua', [InstansiCheckController::class, 'checkAll'])->name('cek.semua');
+    Route::post('/notifikasi/dibaca', AlertSeenController::class)->name('notifikasi.dibaca');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

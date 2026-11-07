@@ -2,7 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\Status;
+use App\Models\Instansi;
+use App\Models\Setting;
+use App\Monitoring\FakeMonitor;
+use App\Monitoring\Monitor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -29,10 +35,88 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        $hasTable = Schema::hasTable('instansi');
+
+        $statusCounts = [
+            'aktif' => 0,
+            'kurang-aktif' => 0,
+            'tidak-aktif' => 0,
+            'menunggu' => 0,
+        ];
+
+        $lastCheckAt = null;
+        $nextCheckAt = null;
+        $intervalHours = 6;
+        $alertItems = [];
+
+        if ($hasTable) {
+            $grouped = Instansi::query()
+                ->selectRaw('status, count(*) as aggregate')
+                ->groupBy('status')
+                ->pluck('aggregate', 'status');
+
+            $statusCounts = [
+                'aktif' => (int) ($grouped[Status::Aktif->value] ?? 0),
+                'kurang-aktif' => (int) ($grouped[Status::KurangAktif->value] ?? 0),
+                'tidak-aktif' => (int) ($grouped[Status::TidakAktif->value] ?? 0),
+                'menunggu' => (int) ($grouped[''] ?? $grouped[null] ?? Instansi::whereNull('status')->count()),
+            ];
+
+            $intervalHours = (int) (Schema::hasTable('settings') ? Setting::get('check_interval_hours', 6) : 6);
+            $latestChecked = Instansi::query()->max('last_checked_at');
+            if ($latestChecked) {
+                $lastCarbon = \Carbon\CarbonImmutable::parse($latestChecked);
+                $lastCheckAt = $lastCarbon->toIso8601String();
+                $nextCheckAt = $lastCarbon->addHours($intervalHours)->toIso8601String();
+            }
+
+            if ($user) {
+                $alertsQuery = Instansi::query()
+                    ->where('status', Status::TidakAktif)
+                    ->whereNotNull('down_since');
+
+                if ($user->alerts_seen_at !== null) {
+                    $alertsQuery->where('down_since', '>', $user->alerts_seen_at);
+                }
+
+                $alertItems = $alertsQuery
+                    ->orderByDesc('down_since')
+                    ->get(['id', 'nama', 'down_since'])
+                    ->map(fn (Instansi $i) => [
+                        'id' => (int) $i->id,
+                        'nama' => $i->nama,
+                        'downSince' => $i->down_since?->toIso8601String(),
+                    ])
+                    ->values()
+                    ->all();
+            }
+        }
+
+        $boundMonitor = app()->bound(Monitor::class) ? app(Monitor::class) : null;
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ] : null,
+            ],
+            'schedule' => [
+                'lastCheckAt' => $lastCheckAt,
+                'nextCheckAt' => $nextCheckAt,
+                'intervalHours' => $intervalHours,
+            ],
+            'alerts' => [
+                'count' => count($alertItems),
+                'items' => $alertItems,
+            ],
+            'isSampleData' => $boundMonitor instanceof FakeMonitor,
+            'statusCounts' => $statusCounts,
+            'flash' => [
+                'status' => fn () => $request->session()->get('status'),
             ],
         ];
     }
