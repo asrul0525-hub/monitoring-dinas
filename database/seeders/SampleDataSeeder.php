@@ -15,15 +15,17 @@ class SampleDataSeeder extends Seeder
 {
     public function run(): void
     {
-        User::query()->updateOrCreate(
-            ['email' => 'admin@diskominfo.test'],
-            [
-                'name' => 'Admin Diskominfo',
-                'password' => Hash::make((string) env('ADMIN_PASSWORD', 'password')),
-                'email_verified_at' => now(),
-                'alerts_seen_at' => now()->subDays(2),
-            ]
-        );
+        foreach (['admin@diskominfo.test', 'admin@diskominfo.go.id'] as $adminEmail) {
+            User::query()->updateOrCreate(
+                ['email' => $adminEmail],
+                [
+                    'name' => 'Admin Diskominfo',
+                    'password' => Hash::make((string) env('ADMIN_PASSWORD', 'password')),
+                    'email_verified_at' => now(),
+                    'alerts_seen_at' => now()->subDays(2),
+                ]
+            );
+        }
 
         Setting::put('freshness_days', 30);
         Setting::put('check_interval_hours', 6);
