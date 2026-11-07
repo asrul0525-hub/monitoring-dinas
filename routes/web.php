@@ -5,7 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstansiCheckController;
 use App\Http\Controllers\InstansiController;
 use App\Http\Controllers\LogController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MonitorSettingsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportExportController;
 use Illuminate\Support\Facades\Route;
@@ -28,10 +28,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/laporan/export/pdf', [ReportExportController::class, 'pdf'])->name('laporan.export.pdf');
     Route::get('/laporan/export/excel', [ReportExportController::class, 'excel'])->name('laporan.export.excel');
     Route::get('/log', LogController::class)->name('log.index');
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/pengaturan', [MonitorSettingsController::class, 'index'])->name('pengaturan.index');
+    Route::put('/pengaturan/monitor', [MonitorSettingsController::class, 'update'])->name('pengaturan.monitor.update');
 });
 
 require __DIR__.'/auth.php';
