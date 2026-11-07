@@ -245,7 +245,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <tr
                                         key={headerGroup.id}
-                                        className="border-b border-line-subtle bg-surface-elevated text-xs font-semibold uppercase tracking-wider text-ink-secondary"
+                                        className="border-b border-line-subtle bg-surface-elevated text-xs font-semibold text-ink-secondary"
                                     >
                                         {headerGroup.headers.map((header) => (
                                             <th key={header.id} className="px-4 py-3">

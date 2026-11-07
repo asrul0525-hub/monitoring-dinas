@@ -4,7 +4,7 @@ import { InstansiTable } from '@/Components/instansi/InstansiTable';
 import { AppShell } from '@/Components/shell/AppShell';
 import { InstansiRow, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
 import { Link, router } from '@inertiajs/react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 type InstansiIndexProps = SharedProps & {
     rows: Paginated<InstansiRow>;
@@ -26,6 +26,17 @@ export default function InstansiIndex({ rows, filters, openTambah = false }: Ins
     const [editing, setEditing] = useState<InstansiRow | null>(null);
     const [deleting, setDeleting] = useState<InstansiRow | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>(filters.q ?? '');
+
+    useEffect(() => {
+        setSearchQuery(filters.q ?? '');
+    }, [filters.q]);
+
+    useEffect(() => {
+        if (openTambah) {
+            setEditing(null);
+            setPanelOpen(true);
+        }
+    }, [openTambah]);
 
     const handleSearch = (e: FormEvent) => {
         e.preventDefault();

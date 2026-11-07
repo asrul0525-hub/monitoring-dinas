@@ -67,7 +67,11 @@ export function StatusTabs({ activeStatus = null }: StatusTabsProps) {
                             <span className={`h-2 w-2 rounded-full ${tab.dotClass}`} aria-hidden="true" />
                         )}
                         <span>{tab.label}</span>
-                        <span className="tabular-nums rounded-full bg-black/20 px-2 py-0.5 text-[11px]">
+                        <span
+                            className={`tabular-nums rounded-full px-2 py-0.5 text-[11px] ${
+                                selected ? 'bg-surface-card text-ink-primary' : 'surface-elevated text-ink-secondary'
+                            }`}
+                        >
                             {tab.count}
                         </span>
                     </Link>
