@@ -1,14 +1,12 @@
 <?php
 
 use App\Http\Controllers\AlertSeenController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InstansiCheckController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::get('/', DashboardController::class)->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::post('/instansi/{instansi}/cek', [InstansiCheckController::class, 'checkOne'])->name('instansi.cek');
