@@ -2,7 +2,7 @@ import { AppShell } from '@/Components/shell/AppShell';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatDateTimeId, formatMs } from '@/lib/format';
 import { Paginated, SharedProps, StatusKey } from '@/types/monitoring';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import {
     createColumnHelper,
     flexRender,
@@ -68,7 +68,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             columnHelper.accessor('checkedAt', {
                 header: 'Waktu Cek',
                 cell: (info) => (
-                    <span className="font-mono text-xs text-[var(--text-secondary)]">
+                    <span className="tabular-nums font-mono text-xs text-ink-secondary">
                         {formatDateTimeId(info.getValue())}
                     </span>
                 ),
@@ -80,7 +80,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                     return (
                         <Link
                             href={`/instansi/${inst.id}`}
-                            className="font-medium text-[var(--text-primary)] hover:text-[var(--accent)]"
+                            className="font-medium text-ink-primary hover:text-accent"
                         >
                             {inst.nama}
                         </Link>
@@ -93,7 +93,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                     const code = info.getValue();
                     if (code === null) {
                         return (
-                            <span className="font-mono text-xs font-semibold text-[var(--status-tidak-text)]">
+                            <span className="font-mono text-xs font-semibold text-status-tidak">
                                 TIMEOUT
                             </span>
                         );
@@ -101,10 +101,8 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                     const isOk = code === 200;
                     return (
                         <span
-                            className={`font-mono text-xs font-semibold ${
-                                isOk
-                                    ? 'text-[var(--status-aktif-text)]'
-                                    : 'text-[var(--status-tidak-text)]'
+                            className={`tabular-nums font-mono text-xs font-semibold ${
+                                isOk ? 'text-status-aktif' : 'text-status-tidak'
                             }`}
                         >
                             {code}
@@ -115,7 +113,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             columnHelper.accessor('responseMs', {
                 header: 'Response Time',
                 cell: (info) => (
-                    <span className="font-mono text-xs text-[var(--text-secondary)]">
+                    <span className="tabular-nums font-mono text-xs text-ink-secondary">
                         {formatMs(info.getValue())}
                     </span>
                 ),
@@ -129,10 +127,10 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                 cell: (info) => {
                     const err = info.getValue();
                     if (!err) {
-                        return <span className="text-xs text-[var(--text-muted)]">—</span>;
+                        return <span className="text-xs text-ink-secondary">—</span>;
                     }
                     return (
-                        <code className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--status-tidak-text)]">
+                        <code className="surface-elevated rounded px-2 py-0.5 font-mono text-xs text-status-tidak">
                             {err}
                         </code>
                     );
@@ -149,28 +147,17 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
     });
 
     return (
-        <AppShell title="Log Monitoring">
-            <Head title="Log Monitoring" />
-
-            <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                        Log Monitoring Kronologis
-                    </h1>
-                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                        Catatan seluruh pengecekan otomatis dan manual dari semua website instansi
-                        (50 entri per halaman).
-                    </p>
-                </div>
-            </div>
-
+        <AppShell
+            title="Log Monitoring Kronologis"
+            subtitle="Catatan seluruh pengecekan otomatis dan manual dari semua website instansi (50 entri per halaman)."
+        >
             {/* Filter Bar */}
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
+            <div className="surface-card mb-5 flex flex-wrap items-center justify-between gap-4 p-4">
                 <div className="flex items-center gap-3">
                     <div>
                         <label
                             htmlFor="log-instansi"
-                            className="mr-2 text-xs font-medium text-[var(--text-secondary)]"
+                            className="mr-2 text-xs font-medium text-ink-secondary"
                         >
                             Instansi:
                         </label>
@@ -182,7 +169,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                     instansi: e.target.value ? Number(e.target.value) : null,
                                 })
                             }
-                            className="rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-1.5 text-sm text-[var(--text-primary)]"
+                            className="input-control h-9 px-3 text-xs"
                         >
                             <option value="">Semua Instansi</option>
                             {instansiOptions.map((opt) => (
@@ -194,7 +181,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                        <span className="mr-1 text-xs font-medium text-[var(--text-secondary)]">
+                        <span className="mr-1 text-xs font-medium text-ink-secondary">
                             Hasil:
                         </span>
                         {(
@@ -210,11 +197,11 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                     key={item.label}
                                     type="button"
                                     onClick={() => updateFilter({ hasil: item.key })}
-                                    className={`rounded-[var(--radius-ctrl)] px-3 py-1.5 text-xs font-medium transition ${
+                                    className={
                                         active
-                                            ? 'bg-[var(--accent)] font-semibold text-[var(--accent-fg)]'
-                                            : 'border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                                    }`}
+                                            ? 'btn-primary-pill h-9 px-3.5 text-xs'
+                                            : 'btn-secondary h-9 px-3.5 text-xs'
+                                    }
                                 >
                                     {item.label}
                                 </button>
@@ -227,7 +214,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                     <button
                         type="button"
                         onClick={resetFilters}
-                        className="rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                        className="btn-secondary h-9 px-3 text-xs"
                     >
                         Reset filter
                     </button>
@@ -235,17 +222,17 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             </div>
 
             {/* Tabel Log */}
-            <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-table)]">
+            <div className="surface-table overflow-hidden">
                 {rows.data.length === 0 ? (
                     <div className="p-12 text-center">
-                        <p className="text-sm font-medium text-[var(--text-secondary)]">
+                        <p className="text-sm font-medium text-ink-secondary">
                             Tidak ada catatan log monitoring untuk filter yang dipilih.
                         </p>
                         {(filters.instansi !== null || filters.hasil !== null) && (
                             <button
                                 type="button"
                                 onClick={resetFilters}
-                                className="mt-3 rounded-[var(--radius-ctrl)] border border-[var(--border-glass)] bg-[var(--bg-card)] px-4 py-2 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]"
+                                className="btn-secondary mt-3 px-4 py-2 text-xs"
                             >
                                 Reset filter
                             </button>
@@ -258,7 +245,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                 {table.getHeaderGroups().map((headerGroup) => (
                                     <tr
                                         key={headerGroup.id}
-                                        className="border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]"
+                                        className="border-b border-line-subtle bg-surface-elevated text-xs font-semibold uppercase tracking-wider text-ink-secondary"
                                     >
                                         {headerGroup.headers.map((header) => (
                                             <th key={header.id} className="px-4 py-3">
@@ -271,11 +258,11 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                     </tr>
                                 ))}
                             </thead>
-                            <tbody className="divide-y divide-[var(--border-subtle)]">
+                            <tbody className="divide-y divide-line-subtle">
                                 {table.getRowModel().rows.map((row) => (
                                     <tr
                                         key={row.id}
-                                        className="transition hover:bg-[var(--bg-card-hover)]"
+                                        className="transition hover:bg-surface-elevated"
                                     >
                                         {row.getVisibleCells().map((cell) => (
                                             <td key={cell.id} className="px-4 py-2.5">
@@ -292,7 +279,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
 
                         {/* Pagination */}
                         {rows.last_page > 1 && (
-                            <div className="flex items-center justify-between border-t border-[var(--border-subtle)] px-4 py-3 text-xs text-[var(--text-secondary)]">
+                            <div className="flex items-center justify-between border-t border-line-subtle px-4 py-3 text-xs text-ink-secondary">
                                 <span>
                                     Menampilkan {rows.from ?? 0}–{rows.to ?? 0} dari {rows.total}{' '}
                                     log pengecekan
@@ -306,15 +293,15 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                                 preserveScroll
                                                 className={`rounded px-2.5 py-1 ${
                                                     link.active
-                                                        ? 'bg-[var(--accent)] font-semibold text-[var(--accent-fg)]'
-                                                        : 'bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                                        ? 'btn-primary-pill'
+                                                        : 'surface-card text-ink-secondary hover:text-ink-primary'
                                                 }`}
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
                                         ) : (
                                             <span
                                                 key={idx}
-                                                className="px-2 py-1 text-[var(--text-muted)]"
+                                                className="px-2 py-1 text-ink-secondary opacity-50"
                                                 dangerouslySetInnerHTML={{ __html: link.label }}
                                             />
                                         ),

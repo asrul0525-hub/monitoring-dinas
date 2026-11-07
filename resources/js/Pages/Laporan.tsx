@@ -2,7 +2,7 @@ import { AppShell } from '@/Components/shell/AppShell';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatMs } from '@/lib/format';
 import { SharedProps, StatusKey } from '@/types/monitoring';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     createColumnHelper,
     flexRender,
@@ -151,11 +151,11 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     <div>
                         <Link
                             href={`/instansi/${info.row.original.instansiId}`}
-                            className="font-semibold text-[var(--text-primary)] hover:text-[var(--accent)]"
+                            className="font-semibold text-ink-primary hover:text-accent"
                         >
                             {info.getValue()}
                         </Link>
-                        <div className="font-mono text-xs text-[var(--text-muted)]">
+                        <div className="font-mono text-xs text-ink-secondary">
                             {info.row.original.url}
                         </div>
                     </div>
@@ -166,7 +166,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                 cell: (info) => {
                     const val = info.getValue();
                     return (
-                        <span className="font-mono font-semibold text-[var(--text-primary)]">
+                        <span className="tabular-nums font-mono font-semibold text-ink-primary">
                             {val !== null ? `${val.toFixed(1)}%` : '—'}
                         </span>
                     );
@@ -175,7 +175,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             columnHelper.accessor('downtimeCount', {
                 header: 'Jumlah Down',
                 cell: (info) => (
-                    <span className="font-mono text-[var(--text-primary)]">
+                    <span className="tabular-nums font-mono text-ink-primary">
                         {info.getValue()} kali
                     </span>
                 ),
@@ -183,7 +183,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             columnHelper.accessor('avgResponseMs', {
                 header: 'Rata-rata Response Time',
                 cell: (info) => (
-                    <span className="font-mono text-[var(--text-secondary)]">
+                    <span className="tabular-nums font-mono text-ink-secondary">
                         {formatMs(info.getValue())}
                     </span>
                 ),
@@ -194,17 +194,17 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     const val = info.getValue();
                     if (val === null) {
                         return (
-                            <span className="text-[var(--text-muted)]">
+                            <span className="text-ink-secondary">
                                 Tanggal konten tidak ditemukan
                             </span>
                         );
                     }
                     return (
                         <span
-                            className={`font-mono ${
+                            className={`tabular-nums font-mono ${
                                 val > 30
-                                    ? 'font-semibold text-[var(--status-kurang-text)]'
-                                    : 'text-[var(--text-secondary)]'
+                                    ? 'font-semibold text-status-kurang'
+                                    : 'text-ink-secondary'
                             }`}
                         >
                             {val} hari
@@ -230,80 +230,61 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
     });
 
     return (
-        <AppShell title="Laporan Monitoring">
-            <Head title="Laporan Monitoring" />
-
-            <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                        Laporan Rekapitulasi Periode
-                    </h1>
-                    <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                        Ringkasan performa uptime dan pembaruan konten per instansi pada periode{' '}
-                        <span className="font-mono font-medium text-[var(--text-primary)]">
-                            {filters.dari}
-                        </span>{' '}
-                        s/d{' '}
-                        <span className="font-mono font-medium text-[var(--text-primary)]">
-                            {filters.sampai}
-                        </span>
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-2.5">
+        <AppShell
+            title="Laporan Rekapitulasi Periode"
+            subtitle={`Ringkasan performa uptime dan pembaruan konten per instansi pada periode ${filters.dari} s/d ${filters.sampai}`}
+            actions={
+                <>
                     <a
                         href={`/laporan/export/excel?${exportQueryString}`}
-                        className="rounded-[var(--radius-ctrl)] border border-[var(--border-glass)] bg-[var(--bg-card)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] transition hover:bg-[var(--bg-card-hover)]"
+                        className="btn-secondary inline-flex h-10 items-center px-4 text-xs"
                     >
                         Export Excel
                     </a>
                     <a
                         href={`/laporan/export/pdf?${exportQueryString}`}
-                        className="rounded-[var(--radius-ctrl)] bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-fg)] transition hover:opacity-90"
+                        className="btn-primary-pill inline-flex h-10 items-center px-5 text-xs"
                     >
                         Export PDF
                     </a>
-                </div>
-            </div>
-
+                </>
+            }
+        >
             {/* Filter Bar */}
-            <form
-                onSubmit={handleFormSubmit}
-                className="mb-6 rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4"
-            >
+            <form onSubmit={handleFormSubmit} className="surface-card mb-6 p-4">
                 <div className="grid grid-cols-12 items-end gap-3">
                     {/* Multi-select Instansi */}
                     <div className="relative col-span-3">
-                        <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
                             Instansi
                         </label>
                         <button
                             type="button"
                             onClick={() => setDropdownOpen((v) => !v)}
-                            className="flex w-full items-center justify-between rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-left text-sm text-[var(--text-primary)]"
+                            className="input-control flex h-10 w-full items-center justify-between px-3 text-left text-xs"
                         >
                             <span className="truncate">
                                 {selectedInstansi.length === 0
                                     ? 'Semua Instansi'
                                     : `${selectedInstansi.length} instansi dipilih`}
                             </span>
-                            <span className="ml-2 text-xs text-[var(--text-muted)]">▾</span>
+                            <span className="ml-2 text-xs text-ink-secondary">▾</span>
                         </button>
 
                         {dropdownOpen && (
-                            <div className="absolute left-0 top-full z-30 mt-1 max-h-64 w-72 overflow-y-auto rounded-[var(--radius-card)] border border-[var(--border-glass)] bg-[var(--bg-elevated)] p-2 shadow-xl">
-                                <div className="mb-2 flex items-center justify-between border-b border-[var(--border-subtle)] pb-1.5 text-xs">
+                            <div className="surface-elevated absolute left-0 top-full z-30 mt-1 max-h-64 w-72 overflow-y-auto rounded-xl p-2 shadow-2xl">
+                                <div className="mb-2 flex items-center justify-between border-b border-line-subtle pb-1.5 text-xs">
                                     <button
                                         type="button"
                                         onClick={() => setSelectedInstansi([])}
-                                        className="text-[var(--accent)] hover:underline"
+                                        className="text-accent hover:underline"
                                     >
                                         Pilih Semua
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setDropdownOpen(false)}
-                                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                                        className="text-ink-secondary hover:text-ink-primary"
                                     >
                                         Tutup
                                     </button>
@@ -311,13 +292,13 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                                 {instansiOptions.map((opt) => (
                                     <label
                                         key={opt.id}
-                                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]"
+                                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs text-ink-primary hover:bg-surface-card"
                                     >
                                         <input
                                             type="checkbox"
                                             checked={selectedInstansi.includes(opt.id)}
                                             onChange={() => toggleInstansi(opt.id)}
-                                            className="rounded border-[var(--border-glass)]"
+                                            className="rounded border-line-strong"
                                         />
                                         <span className="truncate">{opt.nama}</span>
                                     </label>
@@ -328,21 +309,21 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
 
                     {/* Preset Periode */}
                     <div className="col-span-2">
-                        <label className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]">
+                        <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
                             Preset Periode
                         </label>
                         <div className="flex gap-1.5">
                             <button
                                 type="button"
                                 onClick={() => applyPreset('bulan')}
-                                className="flex-1 rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2.5 py-2 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]"
+                                className="btn-secondary h-10 flex-1 px-2.5 text-xs"
                             >
                                 Bulan ini
                             </button>
                             <button
                                 type="button"
                                 onClick={() => applyPreset('kuartal')}
-                                className="flex-1 rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2.5 py-2 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]"
+                                className="btn-secondary h-10 flex-1 px-2.5 text-xs"
                             >
                                 Kuartal ini
                             </button>
@@ -353,7 +334,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     <div className="col-span-2">
                         <label
                             htmlFor="filter-dari"
-                            className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]"
+                            className="mb-1.5 block text-xs font-medium text-ink-secondary"
                         >
                             Dari Tanggal
                         </label>
@@ -362,14 +343,14 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                             type="date"
                             value={dari}
                             onChange={(e) => setDari(e.target.value)}
-                            className="w-full rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 font-mono text-sm text-[var(--text-primary)]"
+                            className="input-control h-10 w-full px-3 font-mono text-xs"
                         />
                     </div>
 
                     <div className="col-span-2">
                         <label
                             htmlFor="filter-sampai"
-                            className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]"
+                            className="mb-1.5 block text-xs font-medium text-ink-secondary"
                         >
                             Sampai Tanggal
                         </label>
@@ -378,7 +359,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                             type="date"
                             value={sampai}
                             onChange={(e) => setSampai(e.target.value)}
-                            className="w-full rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 font-mono text-sm text-[var(--text-primary)]"
+                            className="input-control h-10 w-full px-3 font-mono text-xs"
                         />
                     </div>
 
@@ -386,7 +367,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     <div className="col-span-2">
                         <label
                             htmlFor="filter-status"
-                            className="mb-1.5 block text-xs font-medium text-[var(--text-secondary)]"
+                            className="mb-1.5 block text-xs font-medium text-ink-secondary"
                         >
                             Status Akhir Periode
                         </label>
@@ -394,7 +375,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                             id="filter-status"
                             value={status}
                             onChange={(e) => setStatus(e.target.value)}
-                            className="w-full rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                            className="input-control h-10 w-full px-3 text-xs"
                         >
                             <option value="">Semua Status</option>
                             <option value="aktif">Aktif</option>
@@ -407,7 +388,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     <div className="col-span-1 flex gap-1.5">
                         <button
                             type="submit"
-                            className="flex-1 rounded-[var(--radius-ctrl)] bg-[var(--accent)] px-3 py-2 text-xs font-semibold text-[var(--accent-fg)] hover:opacity-90"
+                            className="btn-primary-pill h-10 flex-1 px-3 text-xs"
                         >
                             Terapkan
                         </button>
@@ -415,7 +396,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                             type="button"
                             onClick={resetFilters}
                             title="Reset filter"
-                            className="rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2.5 py-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                            className="btn-secondary h-10 px-2.5 text-xs"
                         >
                             Reset
                         </button>
@@ -423,7 +404,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                 </div>
 
                 {(errors?.dari || errors?.sampai) && (
-                    <p className="mt-2 text-xs font-medium text-[var(--status-tidak-text)]">
+                    <p className="mt-2 text-xs font-medium text-status-tidak">
                         {errors.dari || errors.sampai}
                     </p>
                 )}
@@ -431,51 +412,51 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
 
             {/* Ringkasan Periode */}
             <div className="mb-6 grid grid-cols-4 gap-4">
-                <div className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                <div className="surface-card p-4">
+                    <div className="text-xs font-medium text-ink-secondary">
                         Rata-rata Uptime Periode
                     </div>
-                    <div className="mt-1 font-mono text-2xl font-bold text-[var(--text-primary)]">
+                    <div className="tabular-nums mt-1 font-mono text-2xl font-bold text-ink-primary">
                         {summary.avgUptime !== null ? `${summary.avgUptime}%` : '—'}
                     </div>
                 </div>
-                <div className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                <div className="surface-card p-4">
+                    <div className="text-xs font-medium text-ink-secondary">
                         Total Kejadian Down
                     </div>
-                    <div className="mt-1 font-mono text-2xl font-bold text-[var(--text-primary)]">
+                    <div className="tabular-nums mt-1 font-mono text-2xl font-bold text-ink-primary">
                         {summary.totalDown}
                     </div>
                 </div>
-                <div className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                <div className="surface-card p-4">
+                    <div className="text-xs font-medium text-ink-secondary">
                         Tidak Aktif di Akhir Periode
                     </div>
-                    <div className="mt-1 font-mono text-2xl font-bold text-[var(--status-tidak-text)]">
+                    <div className="tabular-nums mt-1 font-mono text-2xl font-bold text-status-tidak">
                         {summary.endDownCount}
                     </div>
                 </div>
-                <div className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4">
-                    <div className="text-xs font-medium text-[var(--text-secondary)]">
+                <div className="surface-card p-4">
+                    <div className="text-xs font-medium text-ink-secondary">
                         Tanpa Update &gt; 30 Hari
                     </div>
-                    <div className="mt-1 font-mono text-2xl font-bold text-[var(--status-kurang-text)]">
+                    <div className="tabular-nums mt-1 font-mono text-2xl font-bold text-status-kurang">
                         {summary.staleOver30Count}
                     </div>
                 </div>
             </div>
 
             {/* Tabel Laporan Solid Kontras Tinggi */}
-            <div className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-table)]">
+            <div className="surface-table overflow-hidden">
                 {rows.length === 0 ? (
                     <div className="p-12 text-center">
-                        <p className="text-base font-medium text-[var(--text-secondary)]">
+                        <p className="text-base font-medium text-ink-secondary">
                             Tidak ada data instansi yang cocok dengan filter laporan ini.
                         </p>
                         <button
                             type="button"
                             onClick={resetFilters}
-                            className="mt-4 rounded-[var(--radius-ctrl)] border border-[var(--border-glass)] bg-[var(--bg-card)] px-4 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--bg-card-hover)]"
+                            className="btn-secondary mt-4 px-4 py-2 text-xs"
                         >
                             Reset filter
                         </button>
@@ -486,13 +467,13 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <tr
                                     key={headerGroup.id}
-                                    className="border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]"
+                                    className="border-b border-line-subtle bg-surface-elevated text-xs font-semibold uppercase tracking-wider text-ink-secondary"
                                 >
                                     {headerGroup.headers.map((header) => (
                                         <th
                                             key={header.id}
                                             onClick={header.column.getToggleSortingHandler()}
-                                            className="cursor-pointer select-none px-4 py-3.5 hover:text-[var(--text-primary)]"
+                                            className="cursor-pointer select-none px-4 py-3.5 hover:text-ink-primary"
                                         >
                                             <div className="flex items-center gap-1.5">
                                                 {flexRender(
@@ -509,11 +490,11 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                                 </tr>
                             ))}
                         </thead>
-                        <tbody className="divide-y divide-[var(--border-subtle)]">
+                        <tbody className="divide-y divide-line-subtle">
                             {table.getRowModel().rows.map((row) => (
                                 <tr
                                     key={row.id}
-                                    className="transition hover:bg-[var(--bg-card-hover)]"
+                                    className="transition hover:bg-surface-elevated"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <td key={cell.id} className="px-4 py-3.5">

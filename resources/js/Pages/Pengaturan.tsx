@@ -1,7 +1,7 @@
 import { AppShell } from '@/Components/shell/AppShell';
 import { ThemeToggle } from '@/Components/shell/ThemeToggle';
 import { SharedProps } from '@/types/monitoring';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 interface PengaturanProps extends SharedProps {
@@ -38,27 +38,18 @@ export default function Pengaturan({ settings }: PengaturanProps) {
     };
 
     return (
-        <AppShell title="Pengaturan">
-            <Head title="Pengaturan" />
-
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                    Pengaturan Sistem &amp; Akun
-                </h1>
-                <p className="mt-1 text-sm text-[var(--text-secondary)]">
-                    Konfigurasi parameter keaktifan konten website dinas, preferensi tampilan, dan
-                    keamanan akun Super Admin.
-                </p>
-            </div>
-
+        <AppShell
+            title="Pengaturan Sistem & Akun"
+            subtitle="Konfigurasi parameter keaktifan konten website dinas, preferensi tampilan, dan keamanan akun Super Admin."
+        >
             <div className="grid grid-cols-12 gap-6">
                 {/* Parameter Monitoring */}
                 <div className="col-span-6 space-y-6">
-                    <section className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-6">
-                        <h2 className="text-base font-semibold text-[var(--text-primary)]">
+                    <section className="surface-card p-6">
+                        <h2 className="text-base font-semibold text-ink-primary">
                             Parameter Monitoring
                         </h2>
-                        <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                        <p className="mt-1 text-xs text-ink-secondary">
                             Mengubah ambang hari akan langsung menghitung ulang status seluruh
                             instansi berdasarkan data cek terakhir.
                         </p>
@@ -67,7 +58,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                             <div>
                                 <label
                                     htmlFor="freshness_days"
-                                    className="block text-xs font-medium text-[var(--text-secondary)]"
+                                    className="block text-xs font-medium text-ink-secondary"
                                 >
                                     Ambang Hari Keaktifan Konten (1–365 hari)
                                 </label>
@@ -84,29 +75,29 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                                 Number(e.target.value),
                                             )
                                         }
-                                        className="w-36 rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 font-mono text-sm text-[var(--text-primary)]"
+                                        className="input-control h-10 w-36 px-3 font-mono text-sm"
                                     />
-                                    <span className="text-xs text-[var(--text-muted)]">
+                                    <span className="text-xs text-ink-secondary">
                                         hari sejak artikel/berita terakhir dipublikasikan
                                     </span>
                                 </div>
                                 {monitorForm.errors.freshness_days && (
-                                    <p className="mt-1.5 text-xs text-[var(--status-tidak-text)]">
+                                    <p className="mt-1.5 text-xs text-status-tidak">
                                         {monitorForm.errors.freshness_days}
                                     </p>
                                 )}
                             </div>
 
-                            <div className="rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-3.5">
+                            <div className="surface-elevated rounded-xl p-3.5">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-xs font-medium text-[var(--text-secondary)]">
+                                    <span className="text-xs font-medium text-ink-secondary">
                                         Interval Jadwal Pengecekan Otomatis (Cron)
                                     </span>
-                                    <span className="rounded bg-[var(--bg-card)] px-2 py-0.5 font-mono text-xs font-semibold text-[var(--text-primary)]">
+                                    <span className="surface-card rounded px-2 py-0.5 font-mono text-xs font-semibold text-ink-primary">
                                         Setiap {settings.checkIntervalHours} jam
                                     </span>
                                 </div>
-                                <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+                                <p className="mt-1 text-[11px] text-ink-secondary">
                                     Ditampilkan hanya-baca pada fase ini. Pengecekan berjalan pada
                                     pukul 02:00, 08:00, 14:00, dan 20:00 WIB.
                                 </p>
@@ -116,7 +107,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                 <button
                                     type="submit"
                                     disabled={monitorForm.processing}
-                                    className="rounded-[var(--radius-ctrl)] bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-[var(--accent-fg)] transition hover:opacity-90 disabled:opacity-50"
+                                    className="btn-primary-pill h-10 px-5 text-xs"
                                 >
                                     {monitorForm.processing
                                         ? 'Menyimpan…'
@@ -126,13 +117,13 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                         </form>
                     </section>
 
-                    <section className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-6">
+                    <section className="surface-card p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-base font-semibold text-[var(--text-primary)]">
+                                <h2 className="text-base font-semibold text-ink-primary">
                                     Preferensi Tema Tampilan
                                 </h2>
-                                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                                <p className="mt-1 text-xs text-ink-secondary">
                                     Pilih mode gelap kaca (default) atau mode terang kontras tinggi.
                                 </p>
                             </div>
@@ -143,11 +134,11 @@ export default function Pengaturan({ settings }: PengaturanProps) {
 
                 {/* Ganti Password */}
                 <div className="col-span-6">
-                    <section className="rounded-[var(--radius-card)] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-6">
-                        <h2 className="text-base font-semibold text-[var(--text-primary)]">
+                    <section className="surface-card p-6">
+                        <h2 className="text-base font-semibold text-ink-primary">
                             Ganti Kata Sandi Super Admin
                         </h2>
-                        <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                        <p className="mt-1 text-xs text-ink-secondary">
                             Perbarui kata sandi akun administrator Diskominfo secara berkala.
                         </p>
 
@@ -155,7 +146,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                             <div>
                                 <label
                                     htmlFor="current_password"
-                                    className="block text-xs font-medium text-[var(--text-secondary)]"
+                                    className="block text-xs font-medium text-ink-secondary"
                                 >
                                     Kata Sandi Saat Ini
                                 </label>
@@ -167,10 +158,10 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                     onChange={(e) =>
                                         passwordForm.setData('current_password', e.target.value)
                                     }
-                                    className="mt-1.5 w-full rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                                    className="input-control mt-1.5 h-10 w-full px-3 text-sm"
                                 />
                                 {passwordForm.errors.current_password && (
-                                    <p className="mt-1.5 text-xs text-[var(--status-tidak-text)]">
+                                    <p className="mt-1.5 text-xs text-status-tidak">
                                         {passwordForm.errors.current_password}
                                     </p>
                                 )}
@@ -179,7 +170,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                             <div>
                                 <label
                                     htmlFor="password"
-                                    className="block text-xs font-medium text-[var(--text-secondary)]"
+                                    className="block text-xs font-medium text-ink-secondary"
                                 >
                                     Kata Sandi Baru
                                 </label>
@@ -191,10 +182,10 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                     onChange={(e) =>
                                         passwordForm.setData('password', e.target.value)
                                     }
-                                    className="mt-1.5 w-full rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                                    className="input-control mt-1.5 h-10 w-full px-3 text-sm"
                                 />
                                 {passwordForm.errors.password && (
-                                    <p className="mt-1.5 text-xs text-[var(--status-tidak-text)]">
+                                    <p className="mt-1.5 text-xs text-status-tidak">
                                         {passwordForm.errors.password}
                                     </p>
                                 )}
@@ -203,7 +194,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                             <div>
                                 <label
                                     htmlFor="password_confirmation"
-                                    className="block text-xs font-medium text-[var(--text-secondary)]"
+                                    className="block text-xs font-medium text-ink-secondary"
                                 >
                                     Konfirmasi Kata Sandi Baru
                                 </label>
@@ -218,10 +209,10 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                             e.target.value,
                                         )
                                     }
-                                    className="mt-1.5 w-full rounded-[var(--radius-ctrl)] border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2 text-sm text-[var(--text-primary)]"
+                                    className="input-control mt-1.5 h-10 w-full px-3 text-sm"
                                 />
                                 {passwordForm.errors.password_confirmation && (
-                                    <p className="mt-1.5 text-xs text-[var(--status-tidak-text)]">
+                                    <p className="mt-1.5 text-xs text-status-tidak">
                                         {passwordForm.errors.password_confirmation}
                                     </p>
                                 )}
@@ -231,14 +222,14 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                 <button
                                     type="submit"
                                     disabled={passwordForm.processing}
-                                    className="rounded-[var(--radius-ctrl)] bg-[var(--accent)] px-4 py-2 text-xs font-semibold text-[var(--accent-fg)] transition hover:opacity-90 disabled:opacity-50"
+                                    className="btn-primary-pill h-10 px-5 text-xs"
                                 >
                                     {passwordForm.processing
                                         ? 'Menyimpan…'
                                         : 'Perbarui Kata Sandi'}
                                 </button>
                                 {passwordForm.recentlySuccessful && (
-                                    <span className="text-xs font-medium text-[var(--status-aktif-text)]">
+                                    <span className="text-xs font-medium text-status-aktif">
                                         Kata sandi berhasil diperbarui.
                                     </span>
                                 )}
