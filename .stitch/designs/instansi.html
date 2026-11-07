@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Instansi â€” Diskominfo Monitor</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-tertiary-container": "#4b4e69",
+            "surface": "#070e1c",
+            "on-surface": "#dce5ff",
+            "secondary-fixed": "#e1e2e8",
+            "on-primary": "#004276",
+            "outline": "#6075a3",
+            "inverse-on-surface": "#4e5566",
+            "surface-tint": "#a2c9ff",
+            "error-dim": "#bb5551",
+            "on-surface-variant": "#95abdc",
+            "on-tertiary": "#545771",
+            "inverse-surface": "#f9f9ff",
+            "surface-container-low": "#081327",
+            "outline-variant": "#314772",
+            "secondary-dim": "#9c9ea4",
+            "on-tertiary-fixed": "#393c55",
+            "secondary-fixed-dim": "#d3d4da",
+            "on-error": "#490106",
+            "primary-fixed-dim": "#bbd6ff",
+            "inverse-primary": "#0061aa",
+            "surface-container-high": "#0b1f40",
+            "primary-dim": "#87bcff",
+            "surface-container-highest": "#0a254e",
+            "primary-container": "#004881",
+            "on-primary-fixed": "#004174",
+            "surface-container": "#0a1933",
+            "tertiary-fixed-dim": "#cecfef",
+            "on-tertiary-fixed-variant": "#555873",
+            "on-primary-container": "#b3d2ff",
+            "tertiary-dim": "#cecfef",
+            "on-secondary": "#1d2025",
+            "on-primary-fixed-variant": "#005da4",
+            "tertiary": "#edecff",
+            "secondary-container": "#393b40",
+            "on-secondary-container": "#bdbfc5",
+            "on-background": "#dce5ff",
+            "secondary": "#9c9ea4",
+            "background": "#070e1c",
+            "on-error-container": "#ff9993",
+            "error-container": "#7f2927",
+            "error": "#ee7d77",
+            "on-secondary-fixed": "#3d3f44",
+            "surface-bright": "#082b5c",
+            "tertiary-fixed": "#dcddfe",
+            "primary-fixed": "#d3e4ff",
+            "on-secondary-fixed-variant": "#595b61",
+            "primary": "#a2c9ff",
+            "surface-dim": "#070e1c",
+            "tertiary-container": "#dcddfe",
+            "surface-variant": "#0a254e",
+            "surface-container-lowest": "#000000"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            headline: ["Plus Jakarta Sans"],
+            display: ["Plus Jakarta Sans"],
+            body: ["Plus Jakarta Sans"],
+            label: ["Public Sans"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined[data-weight="fill"] {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Tabular numbers for clean numeric layout */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    /* Custom subtle glass scrolls */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(96, 117, 163, 0.25);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(96, 117, 163, 0.45);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body antialiased min-h-screen overflow-x-hidden selection:bg-primary-container selection:text-on-primary-container relative">
+<!-- Faint cool light bloom top-left atmospheric glow -->
+<div class="fixed top-0 left-0 w-[580px] h-[580px] bg-primary/10 rounded-full blur-[140px] pointer-events-none -translate-x-1/3 -translate-y-1/3 z-0"></div>
+<!-- ========================================================================= -->
+<!-- FLOATING GLASS VERTICAL ICON RAIL (LEFT) -->
+<!-- ========================================================================= -->
+<aside class="fixed left-4 top-4 bottom-4 w-16 flex flex-col justify-between items-center z-50 py-6 bg-surface-container/60 backdrop-blur-xl rounded-full border border-outline-variant/30 shadow-2xl shadow-background/80">
+<!-- Brand / System Emblem -->
+<div class="flex flex-col items-center gap-1 group">
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary/30 to-surface-container-highest border border-outline-variant/40 flex items-center justify-center text-primary font-headline font-bold text-xs tracking-wider shadow-inner">
+        SM
+      </div>
+<span class="font-headline text-[9px] font-bold text-primary tracking-widest uppercase mt-0.5">SIMON</span>
+</div>
+<!-- 5 Vertical Menu Items (Instansi IS ACTIVE) -->
+<nav class="flex flex-col items-center gap-4 my-auto">
+<!-- 1. Dashboard -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center" href="#" title="Dashboard">
+<span class="material-symbols-outlined">dashboard</span>
+</a>
+<!-- 2. Instansi (ACTIVE - style_active_navigation) -->
+<a class="text-primary ring-1 ring-primary/40 bg-surface-container-highest/60 rounded-full p-2.5 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center shadow-lg shadow-primary-container/20" href="#" title="Instansi">
+<span class="material-symbols-outlined" data-weight="fill">account_balance</span>
+</a>
+<!-- 3. Laporan -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center" href="#" title="Laporan">
+<span class="material-symbols-outlined">description</span>
+</a>
+<!-- 4. Log Monitoring -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center" href="#" title="Log Monitoring">
+<span class="material-symbols-outlined">history</span>
+</a>
+<!-- 5. Pengaturan -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-all duration-200 hover:scale-105 active:scale-95 flex items-center justify-center" href="#" title="Pengaturan">
+<span class="material-symbols-outlined">settings</span>
+</a>
+</nav>
+<!-- Bottom Icon Anchor (Super Admin indicator) -->
+</aside>
+<!-- ========================================================================= -->
+<!-- FLOATING GLASS PILL TOP HEADER (TOP NAV BAR) -->
+<!-- ========================================================================= -->
+<header class="fixed top-4 left-24 right-6 z-40 rounded-full border border-outline-variant/30 bg-surface-container/60 backdrop-blur-xl shadow-2xl shadow-background/80 flex justify-between items-center px-6 py-2.5">
+<!-- Left Section: Avatar, Greeting, Subtitle -->
+<div class="flex items-center gap-3.5 min-w-max">
+<div class="w-9 h-9 rounded-full bg-primary-container text-on-primary-container border border-primary/30 flex items-center justify-center font-headline font-bold text-xs shadow-sm">
+        SA
+      </div>
+<div class="flex flex-col leading-tight">
+<div class="flex items-center gap-2">
+<span class="font-headline text-sm font-semibold text-on-surface">Selamat datang, Admin Diskominfo</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest/80 border border-outline-variant/30 text-[10px] font-medium text-on-surface-variant">Data contoh</span>
+</div>
+<span class="font-body text-xs text-on-surface-variant">Diskominfo Monitor Â· Provinsi</span>
+</div>
+</div>
+<!-- Center Section: Search Bar with âŒ˜K -->
+<div class="flex-1 max-w-md mx-6">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full pl-9 pr-14 py-1.5 bg-surface-container-low/70 border border-outline-variant/30 rounded-full text-xs text-on-surface placeholder-on-surface-variant/70 focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 transition-all font-body" placeholder="Cari instansi atau URL" type="text"/>
+<kbd class="absolute right-3 px-1.5 py-0.5 text-[10px] font-mono font-medium text-on-surface-variant bg-surface-container-high/80 rounded border border-outline-variant/30">âŒ˜K</kbd>
+</div>
+</div>
+<!-- Right Section: Info, Cek Sekarang Button, Toggle, Notifications -->
+<div class="flex items-center gap-3.5 min-w-max">
+<!-- Last check info -->
+<div class="text-right hidden xl:block">
+<p class="text-[11px] tabular-nums font-body text-on-surface-variant">Cek terakhir 14:00 Â· berikutnya 20:00</p>
+</div>
+<!-- Primary Action: Cek Sekarang -->
+<button class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container hover:bg-primary-container/80 border border-primary/30 text-xs font-semibold shadow-sm hover:scale-105 active:scale-95 transition-all duration-150">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Cek Sekarang</span>
+</button>
+<!-- Vertical Divider -->
+<div class="w-px h-5 bg-outline-variant/40"></div>
+<!-- Light / Dark Mode Toggle -->
+<button class="p-1.5 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" title="Toggle Tema">
+<span class="material-symbols-outlined text-[19px]">dark_mode</span>
+</button>
+<!-- Notification with Badge '2' -->
+<button class="relative p-1.5 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" title="Notifikasi">
+<span class="material-symbols-outlined text-[19px]">notifications</span>
+<span class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-error text-surface font-headline font-bold text-[9px] flex items-center justify-center leading-none">2</span>
+</button>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE CANVAS (INSTANSI MANAGEMENT) -->
+<!-- ========================================================================= -->
+<main class="pl-24 pt-24 pb-28 min-h-screen pr-6">
+<div class="max-w-[1400px] mx-auto space-y-6">
+<!-- 1. PAGE HEADER & FILTER CLUSTER -->
+<div class="flex items-center justify-between gap-4 mb-6">
+<div class="flex items-baseline gap-3">
+<h1 class="font-headline text-2xl font-bold tracking-tight text-on-surface">Instansi</h1>
+<span class="font-body text-sm text-on-surface-variant"><span class="text-amber-400 font-medium">9 instansi</span> berstatus Kurang Aktif</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-medium shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+<span>Status: Kurang Aktif</span>
+<button class="hover:text-amber-100 transition-colors ml-0.5" title="Hapus Filter">âœ•</button>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[16px]">filter_list</span>
+<input class="w-64 pl-8 pr-3 py-1.5 bg-surface-container-high/40 border border-outline-variant/30 rounded-lg text-xs text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-primary/50 text-ellipsis font-body" placeholder="Cari nama instansi atau domain..." type="text" value=""/>
+</div>
+<button class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary text-on-primary hover:bg-primary-dim text-xs font-semibold shadow-md shadow-primary/20 hover:scale-105 active:scale-95 transition-all duration-150">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>Tambah Instansi</span>
+</button>
+</div>
+</div>
+<!-- 2. DATA TABLE PANEL (SOLID / GLASS WITH MAXIMUM LEGIBILITY) -->
+<div class="bg-[#0F1626] border border-outline-variant/30 rounded-[20px] shadow-xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/30 bg-surface-container-high/40 text-[11px] font-headline font-semibold text-on-surface-variant uppercase tracking-wider"><th class="py-3 px-4 whitespace-nowrap">Status</th>
+<th class="py-3 px-4 whitespace-nowrap">Nama instansi</th>
+<th class="py-3 px-4 whitespace-nowrap">Terakhir update</th>
+<th class="py-3 px-4 whitespace-nowrap">Response time</th>
+<th class="py-3 px-4 whitespace-nowrap">HTTP terakhir</th>
+<th class="py-3 px-4 whitespace-nowrap">URL</th>
+<th class="py-3 px-4 whitespace-nowrap">Sumber konten</th>
+<th class="py-3 px-4 text-right whitespace-nowrap">Aksi</th></tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 text-xs font-body"><tr class="bg-surface-container-high/40 hover:bg-surface-container-high/60 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-semibold text-on-surface">Dinas Contoh 03</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">4 bulan yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">412 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap text-primary hover:underline tabular-nums">
+<a class="inline-flex items-center gap-1 text-primary hover:underline" href="#">
+<span>dinas-contoh-03.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">Sitemap</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 22</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">47 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">380 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-22.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">RSS</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 16</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">96 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">520 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-16.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">DOM</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 38</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">64 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">445 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-38.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">Sitemap</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 11</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">52 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">390 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-11.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">RSS</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 08</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">71 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">478 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-08.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">DOM</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 17</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">39 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">365 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-17.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">Sitemap</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 24</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">83 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">498 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-24.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">RSS</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-300 font-medium text-[11px]">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+      Kurang Aktif
+    </span>
+</td>
+<td class="py-3 px-4 whitespace-nowrap font-medium text-on-surface">Dinas Contoh 30</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface-variant tabular-nums">110 hari yang lalu</td>
+<td class="py-3 px-4 whitespace-nowrap text-on-surface tabular-nums font-medium">420 ms</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-[11px] font-medium">200 OK</span>
+</td>
+<td class="py-3 px-4 text-on-surface-variant hover:text-primary tabular-nums">
+<a class="inline-flex items-center gap-1" href="#">
+<span>dinas-contoh-30.go.id</span>
+<span class="material-symbols-outlined text-[13px]">north_east</span>
+</a>
+</td>
+<td class="py-3 px-4 whitespace-nowrap">
+<span class="px-2 py-0.5 rounded-lg bg-surface-container-highest/80 border border-outline-variant/40 text-[11px] font-medium text-on-surface-variant">Sitemap</span>
+</td>
+<td class="py-3 px-4 text-right whitespace-nowrap">
+<div class="inline-flex items-center gap-3">
+<button class="text-primary hover:underline font-medium text-xs">Ubah</button>
+<button class="text-error hover:text-error/80 font-medium text-xs transition-colors">Hapus</button>
+</div>
+</td>
+</tr></tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="px-5 py-3 border-t border-outline-variant/30 flex items-center justify-between text-xs text-on-surface-variant">
+<span class="tabular-nums">Menampilkan 1â€“9 dari 9 instansi</span>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded text-on-surface-variant/40 cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-medium tabular-nums text-xs">1</span>
+<button class="p-1 rounded text-on-surface-variant/40 cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- ========================================================================= -->
+<!-- 3. SLIDE-OVER PANEL DI SISI KANAN (Ubah Instansi) -->
+<!-- ========================================================================= -->
+<!-- ========================================================================= -->
+<!-- FLOATING BOTTOM STATUS PILL BAR (BOTTOM CENTER) -->
+<!-- ========================================================================= -->
+<div class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40">
+<nav class="bg-surface-container/75 backdrop-blur-xl border border-outline-variant/40 rounded-full px-2 py-1.5 shadow-2xl shadow-background/90 flex items-center gap-1 text-xs font-headline">
+<!-- Tab 1: Semua 42 -->
+<a class="px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors flex items-center gap-1.5" href="#">
+<span>Semua</span>
+<span class="tabular-nums font-semibold px-1.5 py-0.2 rounded-full bg-surface-container-highest/70 text-[10px] text-on-surface-variant">42</span>
+</a>
+<!-- Tab 2: Aktif 26 -->
+<a class="px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors flex items-center gap-1.5" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span>Aktif</span>
+<span class="tabular-nums font-semibold px-1.5 py-0.2 rounded-full bg-surface-container-highest/70 text-[10px] text-on-surface-variant">26</span>
+</a>
+<!-- Tab 3: Kurang Aktif 9 (AKTIF / TERPILIH) -->
+<a class="px-3.5 py-1.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/40 font-semibold flex items-center gap-1.5 shadow-sm" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+<span>Kurang Aktif</span>
+<span class="tabular-nums px-1.5 py-0.2 rounded-full bg-amber-400/30 text-[10px] text-amber-200">9</span>
+</a>
+<!-- Tab 4: Tidak Aktif 5 -->
+<a class="px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors flex items-center gap-1.5" href="#">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+<span>Tidak Aktif</span>
+<span class="tabular-nums font-semibold px-1.5 py-0.2 rounded-full bg-surface-container-highest/70 text-[10px] text-on-surface-variant">5</span>
+</a>
+</nav>
+</div>
+</body></html>

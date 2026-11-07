@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Laporan Eksekutif - SI-MONITOR Diskominfo</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary-container": "#004881",
+            "error-dim": "#bb5551",
+            "on-background": "#dce5ff",
+            "tertiary-fixed": "#dcddfe",
+            "surface-container": "#0a1933",
+            "surface-dim": "#070e1c",
+            "on-secondary-fixed": "#3d3f44",
+            "on-secondary": "#1d2025",
+            "outline": "#6075a3",
+            "tertiary-fixed-dim": "#cecfef",
+            "primary-fixed": "#d3e4ff",
+            "on-secondary-container": "#bdbfc5",
+            "tertiary-dim": "#cecfef",
+            "surface": "#070e1c",
+            "inverse-surface": "#f9f9ff",
+            "on-error-container": "#ff9993",
+            "on-primary-fixed-variant": "#005da4",
+            "secondary-fixed": "#e1e2e8",
+            "on-error": "#490106",
+            "on-surface": "#dce5ff",
+            "error": "#ee7d77",
+            "secondary-dim": "#9c9ea4",
+            "on-tertiary": "#545771",
+            "error-container": "#7f2927",
+            "primary-dim": "#87bcff",
+            "surface-container-low": "#081327",
+            "primary-fixed-dim": "#bbd6ff",
+            "tertiary-container": "#dcddfe",
+            "tertiary": "#edecff",
+            "on-primary-fixed": "#004174",
+            "on-primary": "#004276",
+            "surface-bright": "#082b5c",
+            "primary": "#a2c9ff",
+            "surface-container-lowest": "#000000",
+            "inverse-on-surface": "#4e5566",
+            "surface-container-highest": "#0a254e",
+            "on-tertiary-fixed": "#393c55",
+            "on-primary-container": "#b3d2ff",
+            "background": "#070e1c",
+            "surface-variant": "#0a254e",
+            "secondary-fixed-dim": "#d3d4da",
+            "secondary": "#9c9ea4",
+            "surface-container-high": "#0b1f40",
+            "on-surface-variant": "#95abdc",
+            "on-tertiary-fixed-variant": "#555873",
+            "inverse-primary": "#0061aa",
+            "surface-tint": "#a2c9ff",
+            "on-tertiary-container": "#4b4e69",
+            "secondary-container": "#393b40",
+            "on-secondary-fixed-variant": "#595b61",
+            "outline-variant": "#314772"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "headline": ["Plus Jakarta Sans", "sans-serif"],
+            "display": ["Plus Jakarta Sans", "sans-serif"],
+            "body": ["Plus Jakarta Sans", "sans-serif"],
+            "label": ["Public Sans", "sans-serif"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #070e1c;
+      color: #dce5ff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+    }
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    /* Subtle projector glow bloom */
+    .bloom-light {
+      background: radial-gradient(circle at 18% 10%, rgba(77, 163, 255, 0.08) 0%, rgba(11, 18, 32, 0) 55%);
+    }
+  </style>
+</head>
+<body class="bg-background min-h-screen relative antialiased selection:bg-primary selection:text-on-primary">
+<!-- Ambient Light Bloom top-left (Atmospheric visionOS cue) -->
+<div class="bloom-light pointer-events-none fixed inset-0 z-0"></div>
+<!-- ========================================================================= -->
+<!-- SIDE NAV RAIL (Glass Floating Rail)                                      -->
+<!-- ========================================================================= -->
+<nav aria-label="Navigasi Utama" class="fixed left-4 top-4 bottom-4 w-16 flex flex-col justify-between items-center z-50 py-6 rounded-full border border-outline-variant/30 bg-surface-container/60 backdrop-blur-xl shadow-2xl shadow-background/80">
+<!-- Header Emblem -->
+<div class="flex flex-col items-center gap-1">
+<div class="w-10 h-10 rounded-full bg-primary-container/40 border border-primary/30 flex items-center justify-center text-primary shadow-inner">
+<span class="material-symbols-outlined text-xl" data-icon="policy">policy</span>
+</div>
+<span class="font-headline text-[10px] font-bold text-primary tracking-widest uppercase scale-75 mt-0.5">SI-MON</span>
+</div>
+<!-- Main Navigation Icons -->
+<div class="flex flex-col items-center gap-5 w-full">
+<!-- 1. Dashboard -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-colors duration-150" href="#" title="Dashboard">
+<span class="material-symbols-outlined text-2xl" data-icon="dashboard">dashboard</span>
+</a>
+<!-- 2. Instansi -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-colors duration-150" href="#" title="Instansi">
+<span class="material-symbols-outlined text-2xl" data-icon="account_balance">account_balance</span>
+</a>
+<!-- 3. Laporan (ACTIVE TAB - Matched Intent) -->
+<a class="text-primary ring-1 ring-primary/40 bg-surface-container-highest/60 rounded-full p-2.5 shadow-lg shadow-primary/10 transition-transform duration-200" href="#" title="Laporan">
+<span class="material-symbols-outlined text-2xl" data-icon="description" style="font-variation-settings: 'FILL' 1;">description</span>
+</a>
+<!-- 4. Log Monitoring -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-colors duration-150" href="#" title="Log Monitoring">
+<span class="material-symbols-outlined text-2xl" data-icon="history">history</span>
+</a>
+<!-- 5. Pengaturan -->
+<a class="text-on-surface-variant p-2.5 rounded-full hover:text-on-surface hover:bg-surface-container-high/40 transition-colors duration-150" href="#" title="Pengaturan">
+<span class="material-symbols-outlined text-2xl" data-icon="settings">settings</span>
+</a>
+</div>
+<!-- Footer Help / Action -->
+</nav>
+<!-- ========================================================================= -->
+<!-- TOP NAV BAR (Glass Pill Header)                                          -->
+<!-- ========================================================================= -->
+<header class="fixed top-4 left-24 right-6 z-40 rounded-full border border-outline-variant/30 bg-surface-container/60 backdrop-blur-xl shadow-2xl shadow-background/80 flex justify-between items-center px-6 py-2.5">
+<!-- Left Section: Avatar, Greeting, Sample Badge & Search Bar -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-full bg-primary-container text-primary font-bold text-xs flex items-center justify-center border border-primary/40" title="Super Admin Diskominfo">
+          SA
+        </div>
+<div class="flex items-center gap-2">
+<span class="font-headline text-sm font-semibold text-on-surface tracking-tight hidden lg:inline">Selamat datang, Admin Diskominfo</span>
+<span class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-outline-variant/40 text-on-surface-variant border border-outline/30">Data contoh</span>
+</div>
+</div>
+<div class="h-4 w-px bg-outline-variant/50 hidden md:block"></div>
+<!-- Quick Search Bar -->
+<div class="relative hidden xl:flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-on-surface-variant text-base pointer-events-none" data-icon="search">search</span>
+<input class="bg-surface-container-lowest/40 border border-outline-variant/40 text-xs text-on-surface pl-9 pr-12 py-1.5 rounded-full w-56 focus:w-64 focus:outline-none focus:border-primary transition-all placeholder:text-on-surface-variant/60" placeholder="Cari instansi atau URL" type="text"/>
+<span class="absolute right-2.5 px-1.5 py-0.5 rounded text-[10px] bg-surface-container-high text-on-surface-variant border border-outline-variant/30 font-label">âŒ˜K</span>
+</div>
+</div>
+<!-- Right Section: Status text, CTA, Theme toggle, Notification -->
+<div class="flex items-center gap-3">
+<span class="text-xs text-on-surface-variant hidden md:flex items-center gap-1.5 font-mono"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>Cek terakhir 14:00 Â· berikutnya 20:00</span>
+<!-- Primary Blue Pill Button: Cek Sekarang -->
+<button class="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold hover:bg-primary-container/80 transition-all duration-200 active:scale-95 border border-primary/40 shadow-sm shadow-primary/20">
+<span class="material-symbols-outlined text-sm font-bold" data-icon="refresh">refresh</span>
+<span>Cek Sekarang</span>
+</button>
+<!-- Theme Toggle -->
+<button class="p-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" title="Mode Tampilan">
+<span class="material-symbols-outlined text-lg" data-icon="dark_mode">dark_mode</span>
+</button>
+<!-- Notifications with Badge -->
+<button class="relative p-2 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors" title="Notifikasi Sistem">
+<span class="material-symbols-outlined text-lg" data-icon="notifications">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-error text-surface-container-lowest text-[10px] font-bold flex items-center justify-center">2</span>
+</button>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- MAIN PRESENTATION CANVAS                                                 -->
+<!-- ========================================================================= -->
+<main class="pl-24 pr-6 pt-24 pb-12 w-full max-w-[1920px] mx-auto min-h-screen">
+<div class="space-y-6">
+<!-- 1. Page Header (Single row for leadership views) -->
+<section class="flex flex-wrap items-center justify-between gap-4">
+<div>
+<h1 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight">Laporan</h1>
+<p class="text-on-surface-variant text-sm mt-0.5">Rekap monitoring per instansi untuk periode terpilih</p>
+</div>
+<div class="flex items-center gap-3">
+<!-- Secondary Outline Button: Export Excel -->
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant/50 bg-surface-container-low/70 hover:bg-surface-container text-on-surface text-xs font-semibold tracking-wide transition-all active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-base text-primary" data-icon="table_view">table_view</span>
+<span>Export Excel</span>
+</button>
+<!-- Primary Blue Pill Button: Export PDF -->
+<button class="flex items-center gap-2 px-5 py-2 rounded-full bg-primary-container text-on-primary-container hover:bg-primary-container/90 text-xs font-bold tracking-wide transition-all active:scale-95 border border-primary/50 shadow-md shadow-primary-container/30">
+<span class="material-symbols-outlined text-base font-bold" data-icon="picture_as_pdf">picture_as_pdf</span>
+<span>Export PDF</span>
+</button>
+</div>
+</section>
+<!-- 2. Filter Bar (Single row, clean solid dark panel) -->
+<section class="bg-surface-container-low/90 rounded-2xl border border-outline-variant/30 p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+<div class="flex flex-wrap items-center gap-3">
+<!-- Dropdown Pill: Instansi -->
+<div class="relative">
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant/40 text-xs text-on-surface font-medium hover:border-primary/50 transition-colors">
+<span class="text-on-surface-variant">Instansi:</span>
+<span class="font-semibold text-primary">Semua (42)</span>
+<span class="material-symbols-outlined text-base text-on-surface-variant" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+</div>
+<!-- Period Segmented Control -->
+<div class="flex items-center p-1 bg-surface-container-lowest/60 rounded-xl border border-outline-variant/30">
+<button class="px-3 py-1 rounded-lg text-xs font-medium text-on-surface-variant hover:text-on-surface transition-colors">Bulan ini</button>
+<button class="px-3 py-1 rounded-lg text-xs font-semibold bg-primary-container text-on-primary-container shadow-sm border border-primary/40">Kuartal ini</button>
+<button class="px-3 py-1 rounded-lg text-xs font-medium text-on-surface-variant hover:text-on-surface transition-colors">Kustom</button>
+</div>
+<!-- Date Range Pill -->
+<div class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant/40 text-xs text-on-surface font-mono">
+<span class="material-symbols-outlined text-sm text-primary" data-icon="calendar_today">calendar_today</span>
+<span>1 Okt 2026 â€“ 31 Des 2026</span>
+</div>
+<!-- Select Dropdown: Status akhir periode -->
+<div class="relative">
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant/40 text-xs text-on-surface hover:border-primary/50 transition-colors">
+<span class="text-on-surface-variant">Status akhir periode:</span>
+<span class="font-medium text-on-surface">Semua</span>
+<span class="material-symbols-outlined text-base text-on-surface-variant" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+</div>
+</div>
+<!-- Subtle Text Button: Reset filter -->
+<div>
+<button class="flex items-center gap-1.5 text-xs text-on-surface-variant hover:text-primary transition-colors px-2 py-1">
+<span class="material-symbols-outlined text-sm" data-icon="restart_alt">restart_alt</span>
+<span>Reset filter</span>
+</button>
+</div>
+</section>
+<!-- 3. Period Summary Strip (Projector-optimized 4 figures) -->
+<section class="bg-surface-container-low/90 rounded-2xl border border-outline-variant/30 px-6 py-4 shadow-lg"><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 lg:divide-x divide-outline-variant/30 gap-4 lg:gap-0"><div class="lg:pr-6"><p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Rata-rata uptime</p><p class="text-3xl font-extrabold text-on-surface tabular-nums tracking-tight">97,4%</p></div><div class="pt-4 sm:pt-0 lg:px-6"><p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Total kejadian down</p><p class="text-3xl font-extrabold text-rose-400 tabular-nums tracking-tight">63</p></div><div class="pt-4 sm:pt-0 lg:px-6"><p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Tidak aktif di akhir periode</p><p class="text-3xl font-extrabold text-rose-400 tabular-nums tracking-tight">5</p></div><div class="pt-4 sm:pt-0 lg:pl-6"><p class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Tanpa update &gt; 30 hari</p><p class="text-3xl font-extrabold text-amber-300 tabular-nums tracking-tight">9</p></div></div></section>
+<!-- 4. Executive Report Table Panel -->
+<section class="bg-surface-container-low/95 rounded-2xl border border-outline-variant/30 overflow-hidden shadow-2xl">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm whitespace-nowrap">
+<thead>
+<tr class="bg-surface-container-high/70 border-b border-outline-variant/40 text-on-surface-variant text-xs tracking-wider font-semibold"><th class="py-4 px-6 text-left cursor-pointer hover:text-on-surface transition-colors min-w-[220px]" scope="col"><div class="flex items-center gap-1.5"><span>Nama instansi</span><span class="material-symbols-outlined text-sm" data-icon="unfold_more">unfold_more</span></div></th><th class="py-4 px-6 text-left cursor-pointer text-primary font-bold min-w-[130px]" scope="col"><div class="flex items-center gap-1.5"><span>Uptime (%)</span><span class="material-symbols-outlined text-sm" data-icon="arrow_upward">arrow_upward</span></div></th><th class="py-4 px-6 text-left cursor-pointer hover:text-on-surface transition-colors min-w-[130px]" scope="col"><div class="flex items-center gap-1.5"><span>Jumlah down</span><span class="material-symbols-outlined text-sm" data-icon="unfold_more">unfold_more</span></div></th><th class="py-4 px-6 text-left cursor-pointer hover:text-on-surface transition-colors min-w-[180px]" scope="col"><div class="flex items-center gap-1.5"><span>Rata-rata response time</span><span class="material-symbols-outlined text-sm" data-icon="unfold_more">unfold_more</span></div></th><th class="py-4 px-6 text-left cursor-pointer hover:text-on-surface transition-colors min-w-[190px]" scope="col"><div class="flex items-center gap-1.5"><span>Hari sejak update terakhir</span><span class="material-symbols-outlined text-sm" data-icon="unfold_more">unfold_more</span></div></th><th class="py-4 px-6 text-left cursor-pointer hover:text-on-surface transition-colors min-w-[170px] pr-8" scope="col"><div class="flex items-center gap-1.5"><span>Status akhir periode</span><span class="material-symbols-outlined text-sm" data-icon="unfold_more">unfold_more</span></div></th></tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/20 font-normal"><tr class="hover:bg-surface-container/50 bg-rose-500/5 transition-colors"><td class="py-3.5 px-6 font-semibold text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Dinas Contoh 07</span></td><td class="py-3.5 px-6 font-extrabold text-rose-400 tabular-nums text-base">81,2%</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-medium">14</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">1.240 ms</td><td class="py-3.5 px-6 tabular-nums text-on-surface">3 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Tidak Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-low transition-colors"><td class="py-3.5 px-6 font-semibold text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Dinas Contoh 19</span></td><td class="py-3.5 px-6 font-bold text-rose-400 tabular-nums text-base">86,5%</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-medium">11</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">2.010 ms</td><td class="py-3.5 px-6 tabular-nums text-on-surface">12 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Tidak Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-high/20 transition-colors"><td class="py-3.5 px-6 font-semibold text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Dinas Contoh 12</span></td><td class="py-3.5 px-6 font-bold text-rose-400 tabular-nums text-base">89,4%</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-medium">8</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">940 ms</td><td class="py-3.5 px-6 tabular-nums text-on-surface">5 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Tidak Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-low transition-colors"><td class="py-3.5 px-6 font-semibold text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Dinas Contoh 28</span></td><td class="py-3.5 px-6 font-bold text-rose-400 tabular-nums text-base">91,0%</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-medium">7</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">880 ms</td><td class="py-3.5 px-6 tabular-nums text-on-surface">18 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Tidak Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-high/20 transition-colors"><td class="py-3.5 px-6 font-semibold text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-rose-400"></span><span>Dinas Contoh 35</span></td><td class="py-3.5 px-6 font-bold text-rose-400 tabular-nums text-base">93,2%</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-medium">5</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">760 ms</td><td class="py-3.5 px-6 tabular-nums text-on-surface">9 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Tidak Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-low transition-colors"><td class="py-3.5 px-6 font-medium text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Dinas Contoh 03</span></td><td class="py-3.5 px-6 font-semibold text-on-surface tabular-nums">99,6%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">1</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">412 ms</td><td class="py-3.5 px-6 tabular-nums text-amber-300 font-medium">124 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Kurang Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-high/20 transition-colors"><td class="py-3.5 px-6 font-medium text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Dinas Contoh 22</span></td><td class="py-3.5 px-6 font-semibold text-on-surface tabular-nums">99,1%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">2</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">380 ms</td><td class="py-3.5 px-6 tabular-nums text-amber-300 font-medium">47 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Kurang Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-low transition-colors"><td class="py-3.5 px-6 font-medium text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Dinas Contoh 16</span></td><td class="py-3.5 px-6 font-semibold text-on-surface tabular-nums">98,8%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">3</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">520 ms</td><td class="py-3.5 px-6 tabular-nums text-amber-300 font-medium">96 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Kurang Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-high/20 transition-colors"><td class="py-3.5 px-6 font-medium text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Dinas Contoh 38</span></td><td class="py-3.5 px-6 font-semibold text-on-surface tabular-nums">99,4%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">1</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">445 ms</td><td class="py-3.5 px-6 tabular-nums text-amber-300 font-medium">64 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Kurang Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-low transition-colors"><td class="py-3.5 px-6 font-medium text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Dinas Contoh 11</span></td><td class="py-3.5 px-6 font-semibold text-on-surface tabular-nums">99,5%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">1</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">390 ms</td><td class="py-3.5 px-6 tabular-nums text-amber-300 font-medium">52 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Kurang Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-high/20 transition-colors"><td class="py-3.5 px-6 font-medium text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Dinas Contoh 08</span></td><td class="py-3.5 px-6 font-semibold text-on-surface tabular-nums">99,7%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">1</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">478 ms</td><td class="py-3.5 px-6 tabular-nums text-amber-300 font-medium">71 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-500/10 text-amber-300 border border-amber-500/20"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Kurang Aktif</span></span></td></tr><tr class="hover:bg-surface-container/50 bg-surface-container-low transition-colors"><td class="py-3.5 px-6 font-bold text-on-surface flex items-center gap-3"><span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>Dinas Contoh 14</span></td><td class="py-3.5 px-6 font-extrabold text-emerald-400 tabular-nums text-base">100%</td><td class="py-3.5 px-6 tabular-nums text-on-surface-variant">0</td><td class="py-3.5 px-6 tabular-nums text-on-surface font-mono">182 ms</td><td class="py-3.5 px-6 tabular-nums text-on-surface">1 hari</td><td class="py-3.5 px-6 pr-8"><span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Aktif</span></span></td></tr></tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination Controls -->
+<div class="p-4 bg-surface-container-high/50 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-4 text-xs text-on-surface-variant">
+<div>
+<span>Menampilkan <strong class="text-on-surface font-semibold">1â€“12</strong> dari <strong class="text-on-surface font-semibold">42</strong> instansi</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="p-1.5 rounded-lg border border-outline-variant/40 hover:bg-surface-container transition-colors disabled:opacity-40" disabled="" title="Sebelumnya">
+<span class="material-symbols-outlined text-base" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-7 h-7 rounded-lg bg-primary-container text-on-primary-container font-bold border border-primary/50 flex items-center justify-center">1</button>
+<button class="w-7 h-7 rounded-lg border border-outline-variant/30 hover:bg-surface-container text-on-surface flex items-center justify-center transition-colors">2</button>
+<button class="w-7 h-7 rounded-lg border border-outline-variant/30 hover:bg-surface-container text-on-surface flex items-center justify-center transition-colors">3</button>
+<button class="w-7 h-7 rounded-lg border border-outline-variant/30 hover:bg-surface-container text-on-surface flex items-center justify-center transition-colors">4</button>
+<button class="p-1.5 rounded-lg border border-outline-variant/40 hover:bg-surface-container transition-colors" title="Berikutnya">
+<span class="material-symbols-outlined text-base" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+</body></html>

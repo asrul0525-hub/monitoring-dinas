@@ -1,0 +1,34 @@
+{
+  "projectId": "7408041637157430809",
+  "title": "Monitoring Website Dinas",
+  "designSystem": {
+    "assetId": "assets/6194463943643494434",
+    "displayName": "Monitoring Dinas — Glass Dark"
+  },
+  "screens": {
+    "dashboard": {
+      "screenId": "74a3a32dcfad4c9c8643957675e48800",
+      "title": "Dasbor Monitoring Website Dinas Diskominfo - Refined",
+      "screenshot": "docs/design/stitch/dashboard.png",
+      "html": ".stitch/designs/dashboard.html"
+    },
+    "instansi": {
+      "screenId": "4c7ac23e840c4cfcbefb429604fc7968",
+      "title": "Manajemen Instansi - Diskominfo Monitoring (Panel Ditutup)",
+      "screenshot": "docs/design/stitch/instansi.png",
+      "html": ".stitch/designs/instansi.html"
+    },
+    "instansi_panel": {
+      "screenId": "0f7cf9693ff84b6b874ee3f22cfe3040",
+      "title": "Manajemen Instansi - Diskominfo Monitoring (Slide-over Terbuka)",
+      "screenshot": "docs/design/stitch/instansi-panel.png",
+      "html": ".stitch/designs/instansi-panel.html"
+    },
+    "laporan": {
+      "screenId": "0126d45da3674d4597847aabf423b345",
+      "title": "Laporan Eksekutif - Diskominfo Monitoring (Refined)",
+      "screenshot": "docs/design/stitch/laporan.png",
+      "html": ".stitch/designs/laporan.html"
+    }
+  }
+}
