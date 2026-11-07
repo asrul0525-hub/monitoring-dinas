@@ -131,3 +131,54 @@ it('menghapus instansi beserta riwayatnya dan detailnya menjadi 404', function (
         ->get("/instansi/{$instansi->id}")
         ->assertNotFound();
 });
+
+it('menghitung uptime 7/30 hari dan series 30 hari pada halaman detail instansi', function () {
+    $user = User::factory()->create();
+    $instansi = Instansi::factory()->create();
+
+    Check::factory()->count(3)->create([
+        'instansi_id' => $instansi->id,
+        'checked_at' => now()->subDays(2),
+        'http_code' => 200,
+        'response_ms' => 200,
+    ]);
+    Check::factory()->create([
+        'instansi_id' => $instansi->id,
+        'checked_at' => now()->subDay(),
+        'http_code' => 502,
+        'response_ms' => null,
+        'status' => Status::TidakAktif,
+    ]);
+
+    $this->actingAs($user)
+        ->get("/instansi/{$instansi->id}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Instansi/Show')
+            ->where('uptime.d7', 75)
+            ->where('uptime.d30', 75)
+            ->has('series', 30)
+            ->has('checks.data', 4)
+        );
+});
+
+it('mengembalikan uptime null dan 30 series avgMs null untuk instansi baru tanpa riwayat cek', function () {
+    $user = User::factory()->create();
+    $instansi = Instansi::factory()->create([
+        'status' => null,
+        'last_checked_at' => null,
+    ]);
+
+    $this->actingAs($user)
+        ->get("/instansi/{$instansi->id}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Instansi/Show')
+            ->where('uptime.d7', null)
+            ->where('uptime.d30', null)
+            ->has('series', 30)
+            ->where('series.0.avgMs', null)
+            ->where('series.29.avgMs', null)
+            ->has('checks.data', 0)
+        );
+});
