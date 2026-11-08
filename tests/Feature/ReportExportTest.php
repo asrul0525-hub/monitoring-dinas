@@ -71,7 +71,10 @@ it('tetap mengembalikan 200 dan menampilkan pesan Tidak ada data saat filter kos
         'printedAt' => '08 Nov 2026 10:00 WIB',
     ])->render();
 
-    expect($html)->toContain('Tidak ada data');
+    expect($html)
+        ->toContain('Tidak ada data')
+        ->toContain('Pemerintah Kabupaten Hulu Sungai Utara')
+        ->toContain('DINAS KOMUNIKASI, INFORMATIKA, DAN PERSANDIAN');
 });
 
 it('mengarahkan tamu ke halaman login saat mengakses export', function () {

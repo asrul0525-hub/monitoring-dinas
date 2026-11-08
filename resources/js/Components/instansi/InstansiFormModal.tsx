@@ -3,7 +3,7 @@ import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatMs } from '@/lib/format';
 import { InstansiRow, KATEGORI_INSTANSI_LABELS, KategoriInstansiKey } from '@/types/monitoring';
 import { useForm } from '@inertiajs/react';
-import { FormEvent, useEffect } from 'react';
+import { FormEvent, useEffect, useRef } from 'react';
 
 interface InstansiFormModalProps {
     open: boolean;
@@ -18,6 +18,7 @@ const KATEGORI_OPTIONS: { value: KategoriInstansiKey; label: string }[] = [
 ];
 
 export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalProps) {
+    const namaInputRef = useRef<HTMLInputElement | null>(null);
     const { data, setData, post, put, processing, errors, clearErrors } = useForm<{
         nama: string;
         kategori: KategoriInstansiKey;
@@ -44,11 +45,20 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
 
     useEffect(() => {
         if (!open) return;
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        const focusTimer = window.setTimeout(() => {
+            namaInputRef.current?.focus({ preventScroll: true });
+        }, 20);
         const onKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };
         window.addEventListener('keydown', onKeyDown);
-        return () => window.removeEventListener('keydown', onKeyDown);
+        return () => {
+            document.body.style.overflow = prevOverflow;
+            window.clearTimeout(focusTimer);
+            window.removeEventListener('keydown', onKeyDown);
+        };
     }, [open, onClose]);
 
     if (!open) {
@@ -83,9 +93,9 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
                 role="dialog"
                 aria-modal="true"
                 aria-label={editing ? `Ubah Instansi ${editing.nama}` : 'Tambah Instansi'}
-                className="glass-shell animate-modal-pop relative z-10 w-full max-w-lg rounded-[20px] p-6"
+                className="glass-shell animate-modal-pop relative z-10 w-full max-w-lg rounded-[20px] p-5"
             >
-                <div className="flex items-start justify-between border-b border-line-subtle pb-3.5">
+                <div className="flex items-start justify-between border-b border-line-subtle pb-3">
                     <div>
                         <h2 className="text-base font-bold text-ink-primary">
                             {editing ? 'Ubah Instansi' : 'Tambah Instansi'}
@@ -106,13 +116,14 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
                     </button>
                 </div>
 
-                <form id="instansi-form" onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+                <form id="instansi-form" onSubmit={handleSubmit} className="mt-3.5 space-y-3">
                     <div className="grid grid-cols-12 gap-3">
                         <div className="col-span-7">
                             <label htmlFor="instansi-nama" className="block text-xs font-medium text-ink-secondary">
                                 Nama Instansi
                             </label>
                             <input
+                                ref={namaInputRef}
                                 id="instansi-nama"
                                 type="text"
                                 value={data.nama}

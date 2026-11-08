@@ -84,5 +84,7 @@ it('mengurutkan attention (tidak-aktif terlama dulu lalu kurang-aktif terlama du
             ->where('stalest.0.id', $staleOld->id)
             ->where('stalest.1.id', $staleNew->id)
             ->where('failedLastCycle', 2)
+            ->has('kpi')
+            ->has('kategoriBreakdown', 3)
         );
 });

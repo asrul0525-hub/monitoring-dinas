@@ -1,4 +1,4 @@
-import { StatusBarChart } from '@/Components/charts/StatusBarChart';
+import { KategoriBreakdownItem, StatusBarChart } from '@/Components/charts/StatusBarChart';
 import { AppShell } from '@/Components/shell/AppShell';
 import { FreshnessText } from '@/Components/status/FreshnessText';
 import { StatusBadge } from '@/Components/status/StatusBadge';
@@ -11,6 +11,12 @@ type DashboardProps = SharedProps & {
     fastest: InstansiRow[];
     stalest: InstansiRow[];
     failedLastCycle: number;
+    kpi?: {
+        uptimePct: number | null;
+        avgResponseMs: number | null;
+        downCount: number;
+    };
+    kategoriBreakdown?: KategoriBreakdownItem[];
 };
 
 export default function Dashboard({
@@ -18,6 +24,8 @@ export default function Dashboard({
     fastest,
     stalest,
     failedLastCycle,
+    kpi,
+    kategoriBreakdown = [],
 }: DashboardProps) {
     const { statusCounts, schedule } = usePage<DashboardProps>().props;
     const checkedCount =
@@ -57,7 +65,7 @@ export default function Dashboard({
             showStatusTabs
             activeStatus={null}
         >
-            <div className="grid grid-cols-12 gap-5">
+            <div className="grid grid-cols-12 items-start gap-5">
                 {/* Large card 1: Horizontal Bar Chart */}
                 <section className="surface-card col-span-5 flex flex-col justify-between p-6">
                     <div>
@@ -69,7 +77,11 @@ export default function Dashboard({
                         </p>
                     </div>
                     <div className="mt-4">
-                        <StatusBarChart counts={statusCounts} />
+                        <StatusBarChart
+                            counts={statusCounts}
+                            kpi={kpi}
+                            kategoriBreakdown={kategoriBreakdown}
+                        />
                     </div>
                 </section>
 
@@ -97,7 +109,7 @@ export default function Dashboard({
                             </div>
                         ) : (
                             <ul className="mt-4 space-y-2">
-                                {attention.slice(0, 7).map((item) => (
+                                {attention.slice(0, 6).map((item) => (
                                     <li key={item.id}>
                                         <Link
                                             href={`/instansi/${item.id}`}

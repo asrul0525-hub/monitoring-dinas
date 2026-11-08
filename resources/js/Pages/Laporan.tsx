@@ -333,7 +333,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             <form onSubmit={handleFormSubmit} className="surface-card mb-6 p-4">
                 <div className="grid grid-cols-12 items-end gap-3">
                     {/* Multi-select Instansi + Kategori Instansi */}
-                    <div className="relative col-span-3">
+                    <div className="relative col-span-2">
                         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
                             Instansi &amp; Kategori
                         </label>
@@ -485,10 +485,10 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     </div>
 
                     {/* Tombol Terapkan & Reset */}
-                    <div className="col-span-1 flex gap-1.5">
+                    <div className="col-span-2 flex items-center gap-2">
                         <button
                             type="submit"
-                            className="btn-primary-pill h-10 flex-1 px-3 text-xs"
+                            className="btn-primary-pill h-10 flex-1 whitespace-nowrap px-3.5 text-xs"
                         >
                             Terapkan
                         </button>
@@ -496,7 +496,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                             type="button"
                             onClick={resetFilters}
                             title="Reset filter"
-                            className="btn-secondary h-10 px-2.5 text-xs"
+                            className="btn-secondary h-10 whitespace-nowrap px-3.5 text-xs"
                         >
                             Reset
                         </button>

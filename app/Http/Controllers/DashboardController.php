@@ -57,11 +57,43 @@ class DashboardController extends Controller
             ->where('status', Status::TidakAktif)
             ->count();
 
+        $checkedCount = Instansi::query()->whereNotNull('status')->count();
+        $onlineCount = Instansi::query()
+            ->whereIn('status', [Status::Aktif->value, Status::KurangAktif->value])
+            ->count();
+        $uptimePct = $checkedCount > 0 ? round(($onlineCount / $checkedCount) * 100, 1) : null;
+
+        $avgResponseRaw = Instansi::query()
+            ->whereIn('status', [Status::Aktif->value, Status::KurangAktif->value])
+            ->whereNotNull('last_response_ms')
+            ->avg('last_response_ms');
+        $avgResponseMs = $avgResponseRaw !== null ? (int) round((float) $avgResponseRaw) : null;
+
+        $allInstansi = Instansi::query()->get(['kategori', 'status']);
+        $kategoriKeys = ['vertikal', 'dinas', 'kec_kel_pkm'];
+        $kategoriBreakdown = [];
+        foreach ($kategoriKeys as $kat) {
+            $group = $allInstansi->filter(fn (Instansi $i) => ($i->kategori ?: 'dinas') === $kat);
+            $kategoriBreakdown[] = [
+                'kategori' => $kat,
+                'total' => $group->count(),
+                'aktif' => $group->filter(fn (Instansi $i) => $i->status === Status::Aktif)->count(),
+                'kurang' => $group->filter(fn (Instansi $i) => $i->status === Status::KurangAktif)->count(),
+                'tidak' => $group->filter(fn (Instansi $i) => $i->status === Status::TidakAktif)->count(),
+            ];
+        }
+
         return Inertia::render('Dashboard', [
             'attention' => $attention,
             'fastest' => $fastest,
             'stalest' => $stalest,
             'failedLastCycle' => $failedLastCycle,
+            'kpi' => [
+                'uptimePct' => $uptimePct,
+                'avgResponseMs' => $avgResponseMs,
+                'downCount' => $failedLastCycle,
+            ],
+            'kategoriBreakdown' => $kategoriBreakdown,
         ]);
     }
 }

@@ -1,4 +1,4 @@
-import { DashboardSkeleton } from '@/Components/ui/Skeleton';
+import { AdaptivePageSkeleton } from '@/Components/ui/Skeleton';
 import { SharedProps, StatusKey } from '@/types/monitoring';
 import { Head, router, usePage } from '@inertiajs/react';
 import { PropsWithChildren, useEffect, useState } from 'react';
@@ -24,17 +24,21 @@ export function AppShell({
     initialSearch = '',
     children,
 }: AppShellProps) {
-    const { flash } = usePage<SharedProps>().props;
-    const [isNavigating, setIsNavigating] = useState(false);
+    const page = usePage<SharedProps>();
+    const { flash } = page.props;
+    const [loadingPath, setLoadingPath] = useState<string | null>(null);
 
     useEffect(() => {
         const removeStart = router.on('start', (event) => {
-            if (event.detail.visit.method === 'get' || event.detail.visit.url.pathname === '/cek-semua') {
-                setIsNavigating(true);
+            const visit = event.detail.visit;
+            if (visit.method === 'get') {
+                setLoadingPath(visit.url.pathname);
+            } else if (visit.url.pathname === '/cek-semua') {
+                setLoadingPath(window.location.pathname);
             }
         });
         const removeFinish = router.on('finish', () => {
-            setIsNavigating(false);
+            setLoadingPath(null);
         });
 
         return () => {
@@ -44,7 +48,7 @@ export function AppShell({
     }, []);
 
     return (
-        <div className="min-h-screen pl-[104px] pr-8 pt-6 pb-24">
+        <div className="min-h-screen pl-[104px] pr-8 pt-6 pb-36">
             <Head title={title} />
             <RailNav />
 
@@ -69,7 +73,7 @@ export function AppShell({
                 </div>
 
                 <main className="animate-page-enter">
-                    {isNavigating ? <DashboardSkeleton /> : children}
+                    {loadingPath !== null ? <AdaptivePageSkeleton path={loadingPath} /> : children}
                 </main>
             </div>
 
