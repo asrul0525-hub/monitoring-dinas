@@ -18,6 +18,7 @@ class Instansi extends Model
 
     protected $fillable = [
         'nama',
+        'kategori',
         'url',
         'feed_url',
         'status',
@@ -67,6 +68,7 @@ class Instansi extends Model
         return [
             'id' => (int) $this->id,
             'nama' => $this->nama,
+            'kategori' => $this->kategori ?: 'dinas',
             'url' => $this->url,
             'feedUrl' => $this->feed_url,
             'status' => $this->status?->value,

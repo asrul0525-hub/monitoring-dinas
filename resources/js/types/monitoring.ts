@@ -4,9 +4,18 @@ export type StatusKey = 'aktif' | 'kurang-aktif' | 'tidak-aktif';
 
 export type ContentSourceKey = 'sitemap' | 'rss' | 'dom';
 
+export type KategoriInstansiKey = 'vertikal' | 'dinas' | 'kec_kel_pkm';
+
+export const KATEGORI_INSTANSI_LABELS: Record<KategoriInstansiKey, string> = {
+    vertikal: 'Instansi Vertikal',
+    dinas: 'Dinas',
+    kec_kel_pkm: 'Kec/Kel/PKM',
+};
+
 export interface InstansiRow {
     id: number;
     nama: string;
+    kategori: KategoriInstansiKey;
     url: string;
     feedUrl: string | null;
     status: StatusKey | null;

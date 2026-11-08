@@ -17,9 +17,11 @@ class InstansiRequest extends FormRequest
     {
         $url = trim((string) $this->input('url', ''));
         $feedUrl = trim((string) $this->input('feed_url', ''));
+        $kategori = trim((string) $this->input('kategori', ''));
 
         $this->merge([
             'nama' => trim((string) $this->input('nama', '')),
+            'kategori' => $kategori !== '' ? $kategori : 'dinas',
             'url' => $url !== '' ? $this->normalizeUrl($url) : '',
             'feed_url' => $feedUrl !== '' ? $this->normalizeUrl($feedUrl) : null,
         ]);
@@ -44,6 +46,7 @@ class InstansiRequest extends FormRequest
 
         return [
             'nama' => ['required', 'string', 'max:255'],
+            'kategori' => ['required', 'string', Rule::in(['vertikal', 'dinas', 'kec_kel_pkm'])],
             'url' => [
                 'required',
                 'string',
@@ -62,6 +65,8 @@ class InstansiRequest extends FormRequest
     {
         return [
             'nama.required' => 'Nama instansi wajib diisi.',
+            'kategori.required' => 'Kategori instansi wajib dipilih.',
+            'kategori.in' => 'Kategori instansi tidak valid.',
             'url.required' => 'URL website wajib diisi.',
             'url.url' => 'Format URL website tidak valid.',
             'url.unique' => 'URL ini sudah terdaftar.',

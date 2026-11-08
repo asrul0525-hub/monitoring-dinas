@@ -43,8 +43,15 @@ class SampleDataSeeder extends Seeder
                     default => "https://dinas-contoh-{$num}.go.id/feed/rss.xml",
                 };
 
+                $kategori = match ($i % 3) {
+                    0 => 'vertikal',
+                    1 => 'dinas',
+                    default => 'kec_kel_pkm',
+                };
+
                 $instansi = Instansi::query()->create([
                     'nama' => "Dinas Contoh {$num}",
+                    'kategori' => $kategori,
                     'url' => "https://dinas-contoh-{$num}.go.id",
                     'feed_url' => $feedUrl,
                     'status' => null,
@@ -61,6 +68,7 @@ class SampleDataSeeder extends Seeder
                 $num = sprintf('%02d', $i);
                 Instansi::query()->create([
                     'nama' => "Dinas Contoh {$num}",
+                    'kategori' => $i === 41 ? 'dinas' : 'kec_kel_pkm',
                     'url' => "https://dinas-contoh-{$num}.go.id",
                     'feed_url' => "https://dinas-contoh-{$num}.go.id/sitemap.xml",
                     'status' => null,

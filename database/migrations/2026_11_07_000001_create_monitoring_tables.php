@@ -15,6 +15,7 @@ return new class extends Migration
         Schema::create('instansi', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
+            $table->string('kategori')->default('dinas')->index();
             $table->string('url')->unique();
             $table->string('feed_url')->nullable();
             $table->string('status')->nullable()->index();

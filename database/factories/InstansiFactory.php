@@ -20,6 +20,7 @@ class InstansiFactory extends Factory
 
         return [
             'nama' => sprintf('Dinas Contoh %02d', $num),
+            'kategori' => 'dinas',
             'url' => sprintf('https://dinas-contoh-%02d.go.id', $num),
             'feed_url' => sprintf('https://dinas-contoh-%02d.go.id/sitemap.xml', $num),
             'status' => Status::Aktif,

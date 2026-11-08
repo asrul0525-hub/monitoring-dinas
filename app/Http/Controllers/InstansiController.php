@@ -53,6 +53,7 @@ class InstansiController extends Controller
     {
         Instansi::query()->create([
             'nama' => $request->validated('nama'),
+            'kategori' => $request->validated('kategori'),
             'url' => $request->validated('url'),
             'feed_url' => $request->validated('feed_url'),
             'status' => null,
@@ -65,6 +66,7 @@ class InstansiController extends Controller
     {
         $instansi->update([
             'nama' => $request->validated('nama'),
+            'kategori' => $request->validated('kategori'),
             'url' => $request->validated('url'),
             'feed_url' => $request->validated('feed_url'),
         ]);

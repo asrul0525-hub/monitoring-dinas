@@ -182,3 +182,30 @@ it('mengembalikan uptime null dan 30 series avgMs null untuk instansi baru tanpa
             ->has('checks.data', 0)
         );
 });
+
+it('menyimpan dan memvalidasi kategori instansi (vertikal, dinas, kec_kel_pkm)', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post('/instansi', [
+            'nama' => 'BPN Kota Contoh',
+            'url' => 'bpn-contoh.go.id',
+            'kategori' => 'vertikal',
+        ])
+        ->assertRedirect('/instansi');
+
+    $saved = Instansi::query()->where('nama', 'BPN Kota Contoh')->firstOrFail();
+    expect($saved->kategori)->toBe('vertikal')
+        ->and($saved->toRow()['kategori'])->toBe('vertikal');
+
+    $this->actingAs($user)
+        ->post('/instansi', [
+            'nama' => 'Instansi Kategori Salah',
+            'url' => 'salah-kategori.go.id',
+            'kategori' => 'swasta',
+        ])
+        ->assertSessionHasErrors([
+            'kategori' => 'Kategori instansi tidak valid.',
+        ]);
+});
+
