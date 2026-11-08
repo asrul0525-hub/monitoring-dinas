@@ -67,9 +67,9 @@ class ReportQuery
             );
 
             $total = $periodChecks->count();
-            $ok = $periodChecks->where('http_code', 200)->count();
+            $ok = $periodChecks->filter(fn (Check $c) => $c->http_code === 200 && $c->error === null)->count();
             $uptimePct = $total > 0 ? round(($ok / $total) * 100, 1) : null;
-            $downtimeCount = $periodChecks->filter(fn (Check $c) => $c->http_code !== 200)->count();
+            $downtimeCount = $periodChecks->filter(fn (Check $c) => $c->http_code !== 200 || $c->error !== null)->count();
 
             $withResponse = $periodChecks->whereNotNull('response_ms');
             $avgResponseMs = $withResponse->isNotEmpty()

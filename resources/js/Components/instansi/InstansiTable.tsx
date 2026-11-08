@@ -88,14 +88,20 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
                         </span>
                     );
                 }
-                const ok = code === 200;
+                const isClosed200 = code === 200 && info.row.original.status === 'tidak-aktif';
+                const ok = code === 200 && !isClosed200;
                 return (
                     <span
+                        title={
+                            isClosed200
+                                ? 'HTTP 200 OK tetapi halaman ditutup / suspended / maintenance'
+                                : undefined
+                        }
                         className={`tabular-nums inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${
                             ok ? 'status-badge--aktif' : 'status-badge--tidak'
                         }`}
                     >
-                        {code === 200 ? '200 OK' : code}
+                        {isClosed200 ? '200 (Tutup)' : code === 200 ? '200 OK' : code}
                     </span>
                 );
             },

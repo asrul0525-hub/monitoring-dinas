@@ -30,12 +30,14 @@ class RecalculateStatuses
             }
 
             $referenceTime = CarbonImmutable::instance($latest->checked_at);
-            $newStatus = StatusCalculator::classify(
-                $latest->http_code,
-                $latest->content_date,
-                $referenceTime,
-                $freshnessDays
-            );
+            $newStatus = $latest->error !== null
+                ? Status::TidakAktif
+                : StatusCalculator::classify(
+                    $latest->http_code,
+                    $latest->content_date,
+                    $referenceTime,
+                    $freshnessDays
+                );
 
             if ($latest->status !== $newStatus) {
                 $latest->update(['status' => $newStatus]);
@@ -45,7 +47,7 @@ class RecalculateStatuses
             if ($newStatus === Status::TidakAktif) {
                 $downSince = $latest->checked_at;
                 foreach ($instansi->checks as $check) {
-                    if ($check->http_code !== 200) {
+                    if ($check->http_code !== 200 || $check->error !== null) {
                         $downSince = $check->checked_at;
                     } else {
                         break;
@@ -56,10 +58,10 @@ class RecalculateStatuses
             $instansi->update([
                 'status' => $newStatus,
                 'last_checked_at' => $latest->checked_at,
-                'last_content_at' => $latest->content_date ?? $instansi->last_content_at,
+                'last_content_at' => $latest->error !== null ? null : ($latest->content_date ?? $instansi->last_content_at),
                 'last_response_ms' => $latest->response_ms,
                 'last_http_code' => $latest->http_code,
-                'content_source' => $latest->content_source ?? $instansi->content_source,
+                'content_source' => $latest->error !== null ? null : ($latest->content_source ?? $instansi->content_source),
                 'down_since' => $downSince,
             ]);
         }

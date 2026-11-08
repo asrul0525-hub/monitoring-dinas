@@ -7,6 +7,7 @@ use App\Enums\Status;
 use App\Models\Check;
 use App\Models\Instansi;
 use App\Models\Setting;
+use App\Monitoring\Inspectors\BlacklistKeywordInspector;
 use App\Monitoring\Parsers\ContentFreshnessParser;
 use App\Monitoring\Parsers\HtmlMetaParser;
 use App\Monitoring\Parsers\NextJsActionExtractor;
@@ -101,27 +102,38 @@ class LiveMonitor implements Monitor
 
         $contentDate = $instansi->last_content_at ? CarbonImmutable::instance($instansi->last_content_at) : null;
         $source = $instansi->content_source;
+        $blacklistReason = null;
 
         if ($httpCode === 200) {
-            $detected = ContentFreshnessParser::detectWithSource(
-                $feedBody,
-                $instansi->feed_url,
-                $htmlBody,
-                $headers
-            );
+            $blacklistReason = BlacklistKeywordInspector::inspect($htmlBody);
 
-            // Multi-layer fallback if static HTML & configured feed did not yield a date
-            if ($detected['date'] === null && $htmlBody !== null && trim($htmlBody) !== '') {
-                $detected = $this->attemptMultiLayerFallback($instansi, $htmlBody);
-            }
+            if ($blacklistReason !== null) {
+                $error = $blacklistReason;
+                $contentDate = null;
+                $source = null;
+            } else {
+                $detected = ContentFreshnessParser::detectWithSource(
+                    $feedBody,
+                    $instansi->feed_url,
+                    $htmlBody,
+                    $headers
+                );
 
-            if ($detected['date'] !== null) {
-                $contentDate = $detected['date']->setTimezone(config('app.timezone', 'UTC'));
+                // Multi-layer fallback if static HTML & configured feed did not yield a date
+                if ($detected['date'] === null && $htmlBody !== null && trim($htmlBody) !== '') {
+                    $detected = $this->attemptMultiLayerFallback($instansi, $htmlBody);
+                }
+
+                if ($detected['date'] !== null) {
+                    $contentDate = $detected['date']->setTimezone(config('app.timezone', 'UTC'));
+                }
+                $source = $detected['source'];
             }
-            $source = $detected['source'];
         }
 
-        $status = StatusCalculator::classify($httpCode, $contentDate, $checkedAt, $freshnessDays);
+        $status = $blacklistReason !== null
+            ? Status::TidakAktif
+            : StatusCalculator::classify($httpCode, $contentDate, $checkedAt, $freshnessDays);
 
         $check = Check::create([
             'instansi_id' => $instansi->id,
@@ -129,7 +141,7 @@ class LiveMonitor implements Monitor
             'http_code' => $httpCode,
             'response_ms' => $responseMs,
             'content_date' => $contentDate,
-            'content_source' => $httpCode === 200 ? $source : null,
+            'content_source' => ($httpCode === 200 && $blacklistReason === null) ? $source : null,
             'status' => $status,
             'error' => $error,
         ]);
@@ -141,10 +153,10 @@ class LiveMonitor implements Monitor
         $instansi->update([
             'status' => $status,
             'last_checked_at' => $checkedAt,
-            'last_content_at' => $contentDate ?? $instansi->last_content_at,
+            'last_content_at' => $blacklistReason !== null ? null : ($contentDate ?? $instansi->last_content_at),
             'last_response_ms' => $responseMs,
             'last_http_code' => $httpCode,
-            'content_source' => $httpCode === 200 ? $source : $instansi->content_source,
+            'content_source' => $blacklistReason !== null ? null : ($httpCode === 200 ? $source : $instansi->content_source),
             'down_since' => $downSince,
         ]);
 

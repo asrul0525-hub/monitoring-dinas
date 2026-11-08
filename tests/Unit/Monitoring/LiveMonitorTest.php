@@ -135,3 +135,37 @@ it('LiveMonitor melakukan auto-discovery link RSS feed pada head HTML saat feed_
         ->and($check->content_source)->toBe(ContentSource::Rss)
         ->and($check->content_date?->format('Y-m-d'))->toBe('2026-11-06');
 });
+
+it('LiveMonitor memaksa status Tidak Aktif meskipun HTTP 200 OK jika HTML mengandung kata kunci blacklist (seperti Kejari HSU site closed)', function () {
+    Setting::put('freshness_days', 30);
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://kejari.hsu.go.id' => Http::response(
+            '<html><head><title>Sorry, site has been closed</title></head><body>Sorry! This site has been closed by administrator! Please contact administrator!</body></html>',
+            200,
+            ['Last-Modified' => 'Wed, 01 Nov 2017 08:00:00 GMT']
+        ),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'Kejari HSU',
+        'url' => 'https://kejari.hsu.go.id',
+        'status' => Status::KurangAktif,
+        'last_content_at' => CarbonImmutable::parse('2017-11-01T08:00:00Z'),
+        'down_since' => null,
+    ]);
+
+    $check = app(LiveMonitor::class)->check($instansi, $now);
+
+    expect($check->http_code)->toBe(200)
+        ->and($check->status)->toBe(Status::TidakAktif)
+        ->and($check->error)->toContain('Situs Ditutup')
+        ->and($check->content_date)->toBeNull();
+
+    $instansi->refresh();
+    expect($instansi->status)->toBe(Status::TidakAktif)
+        ->and($instansi->last_content_at)->toBeNull()
+        ->and($instansi->down_since?->timestamp)->toBe($now->timestamp);
+});
+

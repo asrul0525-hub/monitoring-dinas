@@ -150,6 +150,7 @@ class InstansiController extends Controller
             ->where('instansi_id', $instansiId)
             ->where('checked_at', '>=', $since)
             ->where('http_code', 200)
+            ->whereNull('error')
             ->count();
 
         return round(($ok / $total) * 100, 1);
