@@ -88,10 +88,7 @@ class BatchMonitorRunner
                     ->timeout($timeout)
                     ->connectTimeout($connectTimeout)
                     ->withUserAgent($userAgent)
-                    ->withHeaders([
-                        'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                        'Accept-Language' => 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
-                    ]);
+                    ->withHeaders(LiveMonitor::defaultBrowserHeaders());
 
                 if (! $verifySsl) {
                     $req = $req->withoutVerifying();
@@ -147,7 +144,7 @@ class BatchMonitorRunner
                         $htmlBody = $fallback;
                         $error = null;
                     } else {
-                        $error = "HTTP {$httpCode}";
+                        $error = 'Terproteksi WAF / CDN (HTTP 403)';
                     }
                 } else {
                     $error = "HTTP {$httpCode}";

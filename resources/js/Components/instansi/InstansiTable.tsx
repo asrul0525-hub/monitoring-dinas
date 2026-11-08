@@ -89,19 +89,32 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
                     );
                 }
                 const isClosed200 = code === 200 && info.row.original.status === 'tidak-aktif';
-                const ok = code === 200 && !isClosed200;
+                const isWaf403 = code === 403;
+                const badgeClass =
+                    code === 200 && !isClosed200
+                        ? 'status-badge--aktif'
+                        : isWaf403
+                          ? 'status-badge--kurang'
+                          : 'status-badge--tidak';
+                const label = isClosed200
+                    ? '200 (Tutup)'
+                    : isWaf403
+                      ? '403 (WAF)'
+                      : code === 200
+                        ? '200 OK'
+                        : code;
                 return (
                     <span
                         title={
                             isClosed200
                                 ? 'HTTP 200 OK tetapi halaman ditutup / suspended / maintenance'
-                                : undefined
+                                : isWaf403
+                                  ? 'Server aktif, akses konten dibatasi proteksi WAF/CDN'
+                                  : undefined
                         }
-                        className={`tabular-nums inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${
-                            ok ? 'status-badge--aktif' : 'status-badge--tidak'
-                        }`}
+                        className={`tabular-nums inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${badgeClass}`}
                     >
-                        {isClosed200 ? '200 (Tutup)' : code === 200 ? '200 OK' : code}
+                        {label}
                     </span>
                 );
             },

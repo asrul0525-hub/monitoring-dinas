@@ -22,6 +22,9 @@ export function FreshnessText({ row, now = new Date(), className = '' }: Freshne
     }
 
     if (!row.lastContentAt) {
+        if (row.lastHttpCode === 403) {
+            return <span className={className}>Terproteksi WAF (Server Aktif)</span>;
+        }
         return <span className={className}>Tanggal konten tidak ditemukan</span>;
     }
 

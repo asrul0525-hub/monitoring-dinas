@@ -169,3 +169,36 @@ it('LiveMonitor memaksa status Tidak Aktif meskipun HTTP 200 OK jika HTML mengan
         ->and($instansi->down_since?->timestamp)->toBe($now->timestamp);
 });
 
+it('LiveMonitor tidak menandai Tidak Aktif saat server merespons HTTP 403 WAF Challenge (seperti Pengadilan Agama HSU)', function () {
+    Setting::put('freshness_days', 30);
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://www.pa-amuntai.go.id' => Http::response(
+            '<!DOCTYPE html><html><head><title>Checking your browser before accessing. Just a moment...</title></head><body><script src="/hcdn-cgi/jschallenge"></script></body></html>',
+            403,
+            ['Server' => 'hcdn']
+        ),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'Pengadilan Agama HSU',
+        'url' => 'https://www.pa-amuntai.go.id',
+        'status' => Status::TidakAktif,
+        'last_content_at' => null,
+        'down_since' => $now->subHour(),
+    ]);
+
+    $check = app(LiveMonitor::class)->check($instansi, $now);
+
+    expect($check->http_code)->toBe(403)
+        ->and($check->status)->toBe(Status::KurangAktif)
+        ->and($check->error)->toContain('WAF');
+
+    $instansi->refresh();
+    expect($instansi->status)->toBe(Status::KurangAktif)
+        ->and($instansi->last_http_code)->toBe(403)
+        ->and($instansi->down_since)->toBeNull();
+});
+
+

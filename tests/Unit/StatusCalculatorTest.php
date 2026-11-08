@@ -30,6 +30,12 @@ it('tidak aktif untuk 404, 500, 502, timeout', function (?int $code) {
     expect(classify($code, $now))->toBe(Status::TidakAktif);
 })->with([404, 500, 502, null]);
 
+it('menganggap HTTP 403 (WAF Challenge) sebagai server aktif: kurang aktif bila tanpa tanggal, aktif bila tanggal mutakhir', function () {
+    $now = CarbonImmutable::parse('2026-11-07T14:00:00Z');
+    expect(classify(403, null))->toBe(Status::KurangAktif)
+        ->and(classify(403, $now->subDays(5)))->toBe(Status::Aktif);
+});
+
 it('memakai ambang dari parameter', function () {
     $now = CarbonImmutable::parse('2026-11-07T14:00:00Z');
     expect(classify(200, $now->subDays(10), freshnessDays: 7))->toBe(Status::KurangAktif);

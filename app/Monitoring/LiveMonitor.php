@@ -42,14 +42,14 @@ class LiveMonitor implements Monitor
             if ($httpCode === 200) {
                 $htmlBody = $response->body();
             } elseif ($httpCode === 403) {
-                // Retry via native curl HTTP/2 when WAF blocks default Guzzle fingerprint
+                // Retry via native curl when WAF blocks default Guzzle fingerprint
                 $fallback = NextJsActionExtractor::fetchCleanHtml($instansi->url);
                 if ($fallback !== null) {
                     $httpCode = 200;
                     $htmlBody = $fallback;
                     $error = null;
                 } else {
-                    $error = "HTTP {$httpCode}";
+                    $error = 'Terproteksi WAF / CDN (HTTP 403)';
                 }
             } else {
                 $error = "HTTP {$httpCode}";
@@ -133,7 +133,7 @@ class LiveMonitor implements Monitor
 
         $status = $blacklistReason !== null
             ? Status::TidakAktif
-            : StatusCalculator::classify($httpCode, $contentDate, $checkedAt, $freshnessDays);
+            : StatusCalculator::classify($httpCode, $contentDate, $checkedAt, $freshnessDays, $blacklistReason);
 
         $check = Check::create([
             'instansi_id' => $instansi->id,
@@ -205,6 +205,27 @@ class LiveMonitor implements Monitor
         return ['date' => null, 'source' => ContentSource::Dom];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public static function defaultBrowserHeaders(): array
+    {
+        return [
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language' => 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
+            'Cache-Control' => 'no-cache',
+            'Pragma' => 'no-cache',
+            'Sec-Ch-Ua' => '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+            'Sec-Ch-Ua-Mobile' => '?0',
+            'Sec-Ch-Ua-Platform' => '"Windows"',
+            'Sec-Fetch-Dest' => 'document',
+            'Sec-Fetch-Mode' => 'navigate',
+            'Sec-Fetch-Site' => 'none',
+            'Sec-Fetch-User' => '?1',
+            'Upgrade-Insecure-Requests' => '1',
+        ];
+    }
+
     public function httpClient(?int $timeoutSeconds = null): PendingRequest
     {
         $timeout = $timeoutSeconds ?? (int) config('monitoring.timeout', 12);
@@ -218,10 +239,7 @@ class LiveMonitor implements Monitor
         $request = Http::timeout($timeout)
             ->connectTimeout($connectTimeout)
             ->withUserAgent($userAgent)
-            ->withHeaders([
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language' => 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
-            ]);
+            ->withHeaders(self::defaultBrowserHeaders());
 
         if (! $verifySsl) {
             $request = $request->withoutVerifying();

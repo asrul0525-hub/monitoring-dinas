@@ -149,8 +149,10 @@ class InstansiController extends Controller
         $ok = Check::query()
             ->where('instansi_id', $instansiId)
             ->where('checked_at', '>=', $since)
-            ->where('http_code', 200)
-            ->whereNull('error')
+            ->where(function ($q) {
+                $q->where(fn ($sub) => $sub->where('http_code', 200)->whereNull('error'))
+                    ->orWhere('http_code', 403);
+            })
             ->count();
 
         return round(($ok / $total) * 100, 1);
