@@ -99,7 +99,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                 </div>
                                 <p className="mt-1 text-[11px] text-ink-secondary">
                                     Ditampilkan hanya-baca pada fase ini. Pengecekan berjalan pada
-                                    pukul 02:00, 08:00, 14:00, dan 20:00 WIB.
+                                    pukul 02:00, 08:00, 14:00, dan 20:00 WITA.
                                 </p>
                             </div>
 

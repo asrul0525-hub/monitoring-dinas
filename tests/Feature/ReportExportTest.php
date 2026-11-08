@@ -68,7 +68,7 @@ it('tetap mengembalikan 200 dan menampilkan pesan Tidak ada data saat filter kos
             'sampai' => '2026-10-31',
             'status' => 'tidak-aktif',
         ],
-        'printedAt' => '08 Nov 2026 10:00 WIB',
+        'printedAt' => '08 Nov 2026 10:00 WITA',
     ])->render();
 
     expect($html)

@@ -2,7 +2,7 @@ import { KategoriBreakdownItem, StatusBarChart } from '@/Components/charts/Statu
 import { AppShell } from '@/Components/shell/AppShell';
 import { FreshnessText } from '@/Components/status/FreshnessText';
 import { StatusBadge } from '@/Components/status/StatusBadge';
-import { formatMs, formatRelativeId, formatTimeWib } from '@/lib/format';
+import { formatMs, formatRelativeId, formatTimeWita } from '@/lib/format';
 import { InstansiRow, SharedProps } from '@/types/monitoring';
 import { Link, usePage } from '@inertiajs/react';
 
@@ -61,7 +61,7 @@ export default function Dashboard({
     return (
         <AppShell
             title="Dashboard"
-            subtitle={`Status ${totalCount} website instansi per cek terakhir ${formatTimeWib(schedule.lastCheckAt)} WIB`}
+            subtitle={`Status ${totalCount} website instansi per cek terakhir ${formatTimeWita(schedule.lastCheckAt)} WITA`}
             showStatusTabs
             activeStatus={null}
         >
@@ -237,13 +237,13 @@ export default function Dashboard({
                         <div className="surface-elevated rounded-xl p-3">
                             <span className="text-[11px] font-medium text-ink-secondary">Cek Terakhir</span>
                             <p className="tabular-nums mt-1 text-base font-bold text-ink-primary">
-                                {formatTimeWib(schedule.lastCheckAt)} WIB
+                                {formatTimeWita(schedule.lastCheckAt)} WITA
                             </p>
                         </div>
                         <div className="surface-elevated rounded-xl p-3">
                             <span className="text-[11px] font-medium text-ink-secondary">Berikutnya</span>
                             <p className="tabular-nums mt-1 text-base font-bold text-ink-primary">
-                                {formatTimeWib(schedule.nextCheckAt)} WIB
+                                {formatTimeWita(schedule.nextCheckAt)} WITA
                             </p>
                         </div>
                         <div className="surface-elevated rounded-xl p-3">

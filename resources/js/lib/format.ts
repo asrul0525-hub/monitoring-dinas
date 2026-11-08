@@ -46,7 +46,7 @@ export function formatMs(ms: number | null | undefined): string {
     return `${new Intl.NumberFormat('id-ID').format(ms)} ms`;
 }
 
-export function formatTimeWib(iso: string | null | undefined): string {
+export function formatTimeWita(iso: string | null | undefined): string {
     if (!iso) {
         return '—';
     }
@@ -57,6 +57,7 @@ export function formatTimeWib(iso: string | null | undefined): string {
     }
 
     return date.toLocaleTimeString('id-ID', {
+        timeZone: 'Asia/Makassar',
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
@@ -74,6 +75,7 @@ export function formatDateTimeId(iso: string | null | undefined): string {
     }
 
     return date.toLocaleString('id-ID', {
+        timeZone: 'Asia/Makassar',
         day: '2-digit',
         month: 'short',
         year: 'numeric',

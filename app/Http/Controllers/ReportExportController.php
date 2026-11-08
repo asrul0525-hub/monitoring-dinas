@@ -44,7 +44,7 @@ class ReportExportController extends Controller
         $pdf = Pdf::loadView('reports.pdf', [
             'rows' => $rows,
             'filters' => $filters,
-            'printedAt' => now()->format('d M Y H:i').' WITA',
+            'printedAt' => now('Asia/Makassar')->format('d M Y H:i').' WITA',
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download($filename);
