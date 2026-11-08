@@ -36,12 +36,14 @@ class CheckSingleInstansi extends Command
 
         $check = $monitor->check($instansi);
         $this->info(sprintf(
-            '[%s] %s — Status: %s | HTTP: %s | Latensi: %s ms',
+            '[%s] %s — Status: %s | HTTP: %s | Latensi: %s ms | Konten: %s (%s)',
             $instansi->nama,
             $instansi->url,
             $check->status->label(),
             $check->http_code ?? 'ERR',
-            $check->response_ms ?? '—'
+            $check->response_ms ?? '—',
+            $check->content_date?->format('Y-m-d') ?? 'Tidak ditemukan',
+            $check->content_source?->value ?? '—'
         ));
 
         return self::SUCCESS;

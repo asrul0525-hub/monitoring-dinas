@@ -69,10 +69,13 @@ class BatchMonitorRunner
         ?CarbonInterface $at = null,
         ?Closure $onProgress = null
     ): void {
-        $timeout = (int) config('monitoring.timeout', 10);
-        $connectTimeout = (int) config('monitoring.connect_timeout', 5);
+        $timeout = (int) config('monitoring.timeout', 12);
+        $connectTimeout = (int) config('monitoring.connect_timeout', 6);
         $verifySsl = (bool) config('monitoring.verify_ssl', false);
-        $userAgent = (string) config('monitoring.user_agent', 'Diskominfo-HSU-Monitor/1.0');
+        $userAgent = (string) config(
+            'monitoring.user_agent',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        );
 
         $startTimes = [];
 
@@ -87,6 +90,7 @@ class BatchMonitorRunner
                     ->withUserAgent($userAgent)
                     ->withHeaders([
                         'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language' => 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7',
                     ]);
 
                 if (! $verifySsl) {
@@ -135,6 +139,15 @@ class BatchMonitorRunner
                     $htmlBody = $mainResult->body();
                     if ($feedResult instanceof Response && $feedResult->successful()) {
                         $feedBody = $feedResult->body();
+                    }
+                } elseif ($httpCode === 403) {
+                    $fallback = \App\Monitoring\Parsers\NextJsActionExtractor::fetchCleanHtml($instansi->url);
+                    if ($fallback !== null) {
+                        $httpCode = 200;
+                        $htmlBody = $fallback;
+                        $error = null;
+                    } else {
+                        $error = "HTTP {$httpCode}";
                     }
                 } else {
                     $error = "HTTP {$httpCode}";

@@ -106,3 +106,32 @@ it('LiveMonitor mencatat Tidak Aktif dan mengisi down_since saat menerima HTTP 5
         ->and($checkTimeout->http_code)->toBeNull()
         ->and($checkTimeout->error)->not->toBeNull();
 });
+
+it('LiveMonitor melakukan auto-discovery link RSS feed pada head HTML saat feed_url instansi kosong', function () {
+    Setting::put('freshness_days', 30);
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://portal-statis.hsu.go.id' => Http::response(
+            '<html><head><link rel="alternate" type="application/rss+xml" href="/feed/" /></head><body>Banner Statis</body></html>',
+            200
+        ),
+        'https://portal-statis.hsu.go.id/feed/' => Http::response(
+            '<?xml version="1.0"?><rss version="2.0"><channel><item><pubDate>Fri, 06 Nov 2026 10:00:00 +0800</pubDate></item></channel></rss>',
+            200
+        ),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'Portal Statis HSU',
+        'url' => 'https://portal-statis.hsu.go.id',
+        'feed_url' => null,
+        'status' => null,
+    ]);
+
+    $check = app(LiveMonitor::class)->check($instansi, $now);
+
+    expect($check->status)->toBe(Status::Aktif)
+        ->and($check->content_source)->toBe(ContentSource::Rss)
+        ->and($check->content_date?->format('Y-m-d'))->toBe('2026-11-06');
+});

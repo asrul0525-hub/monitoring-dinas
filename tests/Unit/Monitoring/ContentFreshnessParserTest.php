@@ -112,3 +112,54 @@ it('ContentFreshnessParser menangani input rusak/invalid dengan aman tanpa melem
     expect($detected['source'])->toBe(ContentSource::Rss)
         ->and($detected['date']?->format('Y-m-d'))->toBe('2026-11-07');
 });
+
+it('HtmlMetaParser mengekstrak tanggal teks Bahasa Indonesia langsung dari body HTML (seperti JDIH, RSUD, dan BPS)', function () {
+    $htmlJdih = <<<'HTML'
+    <html>
+    <body>
+        <div class="berita-card">
+            <span class="tanggal">26 Oktober 2026</span>
+            <h3>Peraturan Bupati HSU Nomor 14 Tahun 2026</h3>
+        </div>
+        <div class="berita-card">
+            <span class="tanggal">23 Oktober 2026</span>
+            <h3>Sosialisasi JDIH</h3>
+        </div>
+    </body>
+    </html>
+    HTML;
+
+    $date = HtmlMetaParser::parse($htmlJdih);
+    expect($date)->not->toBeNull()
+        ->and($date?->format('Y-m-d'))->toBe('2026-10-26');
+});
+
+it('HtmlMetaParser mengekstrak tanggal dari pola URL href artikel dan mengabaikan tanggal masa depan seperti masa berlaku banner 2027', function () {
+    $htmlBps = <<<'HTML'
+    <html>
+    <body>
+        <script>window.__DATA__ = {"banner":{"start":"2026-07-02","end":"2027-02-01"}};</script>
+        <a href="/id/pressrelease/2026/11/05/184259/indeks-pembangunan-manusia-hsu.html">IPM HSU</a>
+        <a href="/id/pressrelease/2026/05/05/179488/indeks-ketimpangan-gender.html">IKG HSU</a>
+    </body>
+    </html>
+    HTML;
+
+    $date = HtmlMetaParser::parse($htmlBps);
+    expect($date)->not->toBeNull()
+        ->and($date?->format('Y-m-d'))->toBe('2026-11-05');
+});
+
+it('HtmlMetaParser::discoverFeedUrls menemukan link RSS/Atom di dalam tag head HTML', function () {
+    $html = <<<'HTML'
+    <html>
+    <head>
+        <link rel="alternate" type="application/rss+xml" title="RSUD Pambalah Batung Feed" href="/feed/" />
+    </head>
+    <body></body>
+    </html>
+    HTML;
+
+    $feeds = HtmlMetaParser::discoverFeedUrls($html, 'https://rspb.hsu.go.id');
+    expect($feeds)->toContain('https://rspb.hsu.go.id/feed/');
+});

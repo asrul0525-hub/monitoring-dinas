@@ -57,6 +57,7 @@ class FeedParser
             'Oktober' => 'October',
             'November' => 'November',
             'Desember' => 'December',
+            'Ags' => 'Aug',
             'Agu' => 'Aug',
             'Okt' => 'Oct',
             'Des' => 'Dec',
@@ -65,8 +66,12 @@ class FeedParser
 
         try {
             $dt = CarbonImmutable::parse($normalized, 'Asia/Makassar');
-            // Reject dates before year 2000 or more than 2 days in the future
-            if ($dt->year < 2000 || $dt->greaterThan(CarbonImmutable::now('Asia/Makassar')->addDays(2))) {
+            // If input had no explicit time component (00:00:00), anchor at 12:00 WITA so UTC conversion preserves calendar date
+            if ($dt->hour === 0 && $dt->minute === 0 && $dt->second === 0 && ! str_contains($normalized, ':')) {
+                $dt = $dt->setTime(12, 0, 0);
+            }
+            // Reject dates before year 2000 or in the future (beyond end of today + 1 day tolerance)
+            if ($dt->year < 2000 || $dt->greaterThan(CarbonImmutable::now('Asia/Makassar')->addDay()->endOfDay())) {
                 return null;
             }
 

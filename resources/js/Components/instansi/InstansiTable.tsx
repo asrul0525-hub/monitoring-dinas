@@ -4,6 +4,7 @@ import { formatMs } from '@/lib/format';
 import { InstansiRow, KATEGORI_INSTANSI_LABELS } from '@/types/monitoring';
 import { Link, router } from '@inertiajs/react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useState } from 'react';
 
 interface InstansiTableProps {
     data: InstansiRow[];
@@ -11,9 +12,29 @@ interface InstansiTableProps {
     onDelete: (row: InstansiRow) => void;
 }
 
+const SOURCE_LABELS: Record<string, string> = {
+    dom: 'DOM',
+    rss: 'RSS',
+    sitemap: 'Sitemap',
+};
+
 const columnHelper = createColumnHelper<InstansiRow>();
 
 export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
+    const [checkingId, setCheckingId] = useState<number | null>(null);
+
+    const handleCheckOne = (row: InstansiRow) => {
+        if (checkingId !== null) return;
+        setCheckingId(row.id);
+        router.post(
+            `/instansi/${row.id}/cek`,
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setCheckingId(null),
+            },
+        );
+    };
     const columns = [
         columnHelper.accessor('status', {
             header: 'Status',
@@ -34,7 +55,23 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
         columnHelper.display({
             id: 'freshness',
             header: 'Terakhir update',
-            cell: (info) => <FreshnessText row={info.row.original} className="text-ink-secondary" />,
+            cell: (info) => {
+                const row = info.row.original;
+                const srcLabel = row.contentSource ? SOURCE_LABELS[row.contentSource] : null;
+                return (
+                    <div className="flex items-center gap-2">
+                        <FreshnessText row={row} className="text-ink-secondary" />
+                        {row.lastContentAt && srcLabel && (
+                            <span
+                                title={`Sumber deteksi pembaruan konten: ${srcLabel}`}
+                                className="surface-elevated rounded px-1.5 py-0.5 text-[10px] font-semibold text-ink-secondary"
+                            >
+                                {srcLabel}
+                            </span>
+                        )}
+                    </div>
+                );
+            },
         }),
         columnHelper.accessor('lastResponseMs', {
             header: 'Response time',
@@ -98,8 +135,34 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
             header: 'Aksi',
             cell: (info) => {
                 const row = info.row.original;
+                const isChecking = checkingId === row.id;
                 return (
                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            disabled={checkingId !== null}
+                            onClick={() => handleCheckOne(row)}
+                            title="Cek ulang website instansi ini sekarang"
+                            className="btn-secondary group inline-flex h-8 items-center gap-1.5 px-2.5 text-xs"
+                        >
+                            <svg
+                                className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                                    isChecking ? 'animate-spin' : 'group-hover:rotate-180'
+                                }`}
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.9"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                                />
+                            </svg>
+                            <span>{isChecking ? 'Cek…' : 'Cek'}</span>
+                        </button>
                         <button
                             type="button"
                             onClick={() => onEdit(row)}
