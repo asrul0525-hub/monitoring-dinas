@@ -6,7 +6,7 @@
     --bg-card: #121A2B;
     --bg-table: #0F1626;
     --bg-elevated: #172238;
-    --bg-scrim: rgba(5, 7, 13, 0.60);
+    --bg-scrim: rgba(5, 7, 13, 0.65);
 
     --border-subtle: rgba(255, 255, 255, 0.10);
     --border-strong: #314772;
@@ -17,6 +17,8 @@
     --accent: #4DA3FF;
     --accent-fg: #07101F;
     --accent-soft: rgba(77, 163, 255, 0.14);
+    --accent-glow: rgba(77, 163, 255, 0.42);
+    --danger-glow: rgba(248, 113, 113, 0.40);
 
     --status-aktif: #34D399;
     --status-aktif-bg: rgba(52, 211, 153, 0.12);
@@ -33,6 +35,9 @@
     --status-menunggu: #94A3B8;
     --status-menunggu-bg: rgba(148, 163, 184, 0.12);
     --status-menunggu-border: rgba(148, 163, 184, 0.35);
+
+    --shimmer-base: rgba(23, 34, 56, 0.65);
+    --shimmer-highlight: rgba(77, 163, 255, 0.16);
 
     --shadow-shell: 0 16px 40px rgba(0, 0, 0, 0.45);
 }
@@ -56,6 +61,8 @@
     --accent: #1D4ED8;
     --accent-fg: #FFFFFF;
     --accent-soft: rgba(29, 78, 216, 0.10);
+    --accent-glow: rgba(29, 78, 216, 0.32);
+    --danger-glow: rgba(185, 28, 28, 0.30);
 
     --status-aktif: #047857;
     --status-aktif-bg: #ECFDF5;
@@ -73,6 +80,9 @@
     --status-menunggu-bg: #F1F5F9;
     --status-menunggu-border: #CBD5E1;
 
+    --shimmer-base: rgba(226, 232, 240, 0.75);
+    --shimmer-highlight: rgba(255, 255, 255, 0.85);
+
     --shadow-shell: 0 12px 32px rgba(15, 23, 42, 0.12);
 }
 
@@ -89,7 +99,7 @@ body {
     font-variant-numeric: tabular-nums;
 }
 
-/* Glass rule: ONLY applied to the 4 shell elements (TopBar, RailNav, StatusTabs, Slide-over Panel) */
+/* Glass rule: ONLY applied to the 4 shell elements (TopBar, RailNav, StatusTabs, Form Modal) */
 .glass-shell {
     background: var(--bg-glass);
     backdrop-filter: blur(24px);
@@ -102,6 +112,7 @@ body {
     background: var(--bg-card);
     border: 1px solid var(--border-subtle);
     border-radius: 20px;
+    transition: border-color 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .surface-table {
@@ -113,6 +124,29 @@ body {
 .surface-elevated {
     background: var(--bg-elevated);
     border: 1px solid var(--border-subtle);
+    transition: border-color 180ms ease, background-color 180ms ease, transform 160ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+}
+
+/* Interactive button animations + subtle glow when pressed */
+button,
+.btn-primary-pill,
+.btn-secondary,
+.btn-action-edit,
+.btn-action-delete {
+    transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms ease,
+        background-color 160ms ease,
+        border-color 160ms ease,
+        color 160ms ease,
+        opacity 150ms ease;
+}
+
+button:active:not(:disabled),
+.btn-primary-pill:active:not(:disabled),
+.btn-secondary:active:not(:disabled) {
+    transform: scale(0.96);
+    box-shadow: 0 0 14px var(--accent-glow);
 }
 
 .btn-primary-pill {
@@ -120,11 +154,16 @@ body {
     color: var(--accent-fg);
     border-radius: 9999px;
     font-weight: 600;
-    transition: opacity 150ms ease;
 }
 
 .btn-primary-pill:hover:not(:disabled) {
-    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.btn-primary-pill:active:not(:disabled) {
+    transform: scale(0.96);
+    box-shadow: 0 0 18px var(--accent-glow);
 }
 
 .btn-primary-pill:disabled {
@@ -140,11 +179,64 @@ body {
     font-weight: 500;
 }
 
+.btn-secondary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: var(--accent);
+    box-shadow: 0 2px 10px var(--accent-soft);
+}
+
+.btn-secondary:active:not(:disabled) {
+    transform: scale(0.96);
+    box-shadow: 0 0 14px var(--accent-glow);
+}
+
+/* Animated Table Action Buttons (Ubah & Hapus) */
+.btn-action-edit {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.btn-action-edit:hover:not(:disabled) {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: translateY(-1.5px) scale(1.02);
+    box-shadow: 0 4px 12px var(--accent-soft);
+}
+
+.btn-action-edit:active:not(:disabled) {
+    transform: scale(0.94);
+    box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.btn-action-delete {
+    background: var(--status-tidak-bg);
+    color: var(--status-tidak);
+    border: 1px solid var(--status-tidak-border);
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.btn-action-delete:hover:not(:disabled) {
+    border-color: var(--status-tidak);
+    transform: translateY(-1.5px) scale(1.02);
+    box-shadow: 0 4px 14px var(--danger-glow);
+}
+
+.btn-action-delete:active:not(:disabled) {
+    transform: scale(0.94);
+    box-shadow: 0 0 18px var(--danger-glow);
+}
+
 .input-control {
     background: var(--bg-elevated);
     color: var(--text-primary);
     border: 1px solid var(--border-strong);
     border-radius: 10px;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
 .input-control::placeholder {
@@ -157,6 +249,7 @@ a:focus-visible,
 select:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
+    box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .status-badge--aktif {
@@ -197,4 +290,56 @@ select:focus-visible {
 
 .status-dot--menunggu {
     background: var(--status-menunggu);
+}
+
+/* Shimmer Skeleton & Page/Modal Animations */
+@keyframes shimmerWave {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--shimmer-base) 25%,
+        var(--shimmer-highlight) 50%,
+        var(--shimmer-base) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmerWave 1.6s infinite linear;
+    border-radius: 12px;
+}
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-page-enter {
+    animation: fadeInSlideUp 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes modalPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.animate-modal-pop {
+    animation: modalPopIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

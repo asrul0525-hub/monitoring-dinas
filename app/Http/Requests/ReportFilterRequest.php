@@ -36,6 +36,7 @@ class ReportFilterRequest extends FormRequest
         return [
             'instansi' => ['nullable', 'array'],
             'instansi.*' => ['integer'],
+            'kategori' => ['nullable', 'string'],
             'dari' => ['required', 'date', 'before_or_equal:sampai'],
             'sampai' => ['required', 'date'],
             'status' => ['nullable', 'string'],
@@ -65,6 +66,15 @@ class ReportFilterRequest extends FormRequest
         return array_values(array_map('intval', array_filter($raw, fn ($v) => is_numeric($v))));
     }
 
+    public function kategoriValue(): ?string
+    {
+        $raw = $this->input('kategori');
+
+        return is_string($raw) && in_array($raw, ['vertikal', 'dinas', 'kec_kel_pkm'], true)
+            ? $raw
+            : null;
+    }
+
     public function dariDate(): CarbonImmutable
     {
         return CarbonImmutable::parse((string) $this->input('dari'))->startOfDay();
@@ -83,12 +93,13 @@ class ReportFilterRequest extends FormRequest
     }
 
     /**
-     * @return array{instansi: array<int, int>, dari: string, sampai: string, status: ?string}
+     * @return array{instansi: array<int, int>, kategori: ?string, dari: string, sampai: string, status: ?string}
      */
     public function filterPayload(): array
     {
         return [
             'instansi' => $this->instansiIds(),
+            'kategori' => $this->kategoriValue(),
             'dari' => $this->dariDate()->format('Y-m-d'),
             'sampai' => $this->sampaiDate()->format('Y-m-d'),
             'status' => $this->statusEnum()?->value,

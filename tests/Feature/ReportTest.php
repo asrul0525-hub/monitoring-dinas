@@ -29,6 +29,24 @@ it('memakai bulan berjalan sebagai default saat diakses tanpa query', function (
             ->where('filters.dari', $expectedDari)
             ->where('filters.sampai', $expectedSampai)
             ->where('filters.status', null)
+            ->where('filters.kategori', null)
             ->has('rows', 1)
         );
 });
+
+it('memfilter laporan berdasarkan kategori instansi (vertikal, dinas, kec_kel_pkm)', function () {
+    $user = User::factory()->create();
+    $vertikal = Instansi::factory()->create(['nama' => 'BPN Contoh', 'kategori' => 'vertikal']);
+    Instansi::factory()->create(['nama' => 'Dinas Contoh', 'kategori' => 'dinas']);
+
+    $this->actingAs($user)
+        ->get('/laporan?kategori=vertikal')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Laporan')
+            ->where('filters.kategori', 'vertikal')
+            ->has('rows', 1)
+            ->where('rows.0.instansiId', $vertikal->id)
+        );
+});
+

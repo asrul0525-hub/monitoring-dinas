@@ -17,14 +17,16 @@ class ReportController extends Controller
             $request->dariDate(),
             $request->sampaiDate(),
             $request->statusEnum(),
+            $request->kategoriValue(),
         );
 
         $instansiOptions = Instansi::query()
             ->orderBy('nama')
-            ->get(['id', 'nama'])
+            ->get(['id', 'nama', 'kategori'])
             ->map(fn (Instansi $i) => [
                 'id' => $i->id,
                 'nama' => $i->nama,
+                'kategori' => $i->kategori ?: 'dinas',
             ])
             ->values()
             ->all();

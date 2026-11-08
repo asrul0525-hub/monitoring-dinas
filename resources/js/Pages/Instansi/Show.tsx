@@ -1,10 +1,10 @@
 import { ResponseSeriesPoint, ResponseTimeLine } from '@/Components/charts/ResponseTimeLine';
-import { InstansiFormPanel } from '@/Components/instansi/InstansiFormPanel';
+import { InstansiFormModal } from '@/Components/instansi/InstansiFormModal';
 import { AppShell } from '@/Components/shell/AppShell';
 import { FreshnessText } from '@/Components/status/FreshnessText';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatDateTimeId, formatMs } from '@/lib/format';
-import { InstansiRow, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
+import { InstansiRow, KATEGORI_INSTANSI_LABELS, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -74,9 +74,9 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                     <button
                         type="button"
                         onClick={() => setEditOpen(true)}
-                        className="btn-secondary h-9 px-3.5 text-xs"
+                        className="btn-action-edit inline-flex h-9 items-center gap-1.5 px-3.5 text-xs"
                     >
-                        Ubah
+                        <span>Ubah</span>
                     </button>
                     <button
                         type="button"
@@ -98,7 +98,7 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                             <FreshnessText row={instansi} />
                         </p>
                         <p className="mt-0.5 text-xs text-ink-secondary">
-                            Sumber konten: {instansi.contentSource ? instansi.contentSource.toUpperCase() : '—'}
+                            Kategori: {KATEGORI_INSTANSI_LABELS[instansi.kategori] ?? instansi.kategori}
                         </p>
                     </div>
                     <div className="px-4">
@@ -222,7 +222,7 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                 </section>
             </div>
 
-            <InstansiFormPanel
+            <InstansiFormModal
                 open={editOpen}
                 editing={instansi}
                 onClose={() => setEditOpen(false)}

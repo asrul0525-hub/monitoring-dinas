@@ -16,6 +16,7 @@ class ReportQuery
      * @return Collection<int, array{
      *     instansiId: int,
      *     nama: string,
+     *     kategori: string,
      *     url: string,
      *     uptimePct: ?float,
      *     downtimeCount: int,
@@ -29,11 +30,16 @@ class ReportQuery
         CarbonInterface $dari,
         CarbonInterface $sampai,
         ?Status $status,
+        ?string $kategori = null,
     ): Collection {
         $query = Instansi::query()->orderBy('nama');
 
         if ($instansiIds !== []) {
             $query->whereIn('id', $instansiIds);
+        }
+
+        if ($kategori !== null && in_array($kategori, ['vertikal', 'dinas', 'kec_kel_pkm'], true)) {
+            $query->where('kategori', $kategori);
         }
 
         $instansis = $query->get();
@@ -85,6 +91,7 @@ class ReportQuery
             return [
                 'instansiId' => $instansi->id,
                 'nama' => $instansi->nama,
+                'kategori' => $instansi->kategori ?: 'dinas',
                 'url' => $instansi->url,
                 'uptimePct' => $uptimePct,
                 'downtimeCount' => $downtimeCount,

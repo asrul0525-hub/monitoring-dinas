@@ -1,5 +1,5 @@
 import { DeleteInstansiDialog } from '@/Components/instansi/DeleteInstansiDialog';
-import { InstansiFormPanel } from '@/Components/instansi/InstansiFormPanel';
+import { InstansiFormModal } from '@/Components/instansi/InstansiFormModal';
 import { InstansiTable } from '@/Components/instansi/InstansiTable';
 import { AppShell } from '@/Components/shell/AppShell';
 import { InstansiRow, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
@@ -190,7 +190,7 @@ export default function InstansiIndex({ rows, filters, openTambah = false }: Ins
                 )}
             </div>
 
-            <InstansiFormPanel
+            <InstansiFormModal
                 open={panelOpen}
                 editing={editing}
                 onClose={() => setPanelOpen(false)}

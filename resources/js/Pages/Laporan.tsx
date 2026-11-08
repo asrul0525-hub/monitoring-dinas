@@ -1,7 +1,7 @@
 import { AppShell } from '@/Components/shell/AppShell';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatMs } from '@/lib/format';
-import { SharedProps, StatusKey } from '@/types/monitoring';
+import { KATEGORI_INSTANSI_LABELS, KategoriInstansiKey, SharedProps, StatusKey } from '@/types/monitoring';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
     createColumnHelper,
@@ -17,6 +17,7 @@ import { FormEvent, useMemo, useState } from 'react';
 export interface ReportRow {
     instansiId: number;
     nama: string;
+    kategori: KategoriInstansiKey;
     url: string;
     uptimePct: number | null;
     downtimeCount: number;
@@ -27,9 +28,10 @@ export interface ReportRow {
 
 interface LaporanProps extends SharedProps {
     rows: ReportRow[];
-    instansiOptions: { id: number; nama: string }[];
+    instansiOptions: { id: number; nama: string; kategori: KategoriInstansiKey }[];
     filters: {
         instansi: number[];
+        kategori: KategoriInstansiKey | null;
         dari: string;
         sampai: string;
         status: StatusKey | null;
@@ -38,10 +40,18 @@ interface LaporanProps extends SharedProps {
 
 const columnHelper = createColumnHelper<ReportRow>();
 
+const KATEGORI_LIST: { key: KategoriInstansiKey | ''; label: string }[] = [
+    { key: '', label: 'Semua Instansi' },
+    { key: 'vertikal', label: 'Instansi Vertikal' },
+    { key: 'dinas', label: 'Dinas' },
+    { key: 'kec_kel_pkm', label: 'Kec/Kel/PKM' },
+];
+
 export default function Laporan({ rows, instansiOptions, filters }: LaporanProps) {
     const { errors } = usePage().props as { errors: Record<string, string> };
 
     const [selectedInstansi, setSelectedInstansi] = useState<number[]>(filters.instansi ?? []);
+    const [kategori, setKategori] = useState<KategoriInstansiKey | ''>(filters.kategori ?? '');
     const [dari, setDari] = useState<string>(filters.dari);
     const [sampai, setSampai] = useState<string>(filters.sampai);
     const [status, setStatus] = useState<string>(filters.status ?? '');
@@ -50,6 +60,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
 
     const applyFilters = (next: {
         instansi: number[];
+        kategori: KategoriInstansiKey | '';
         dari: string;
         sampai: string;
         status: string;
@@ -60,6 +71,9 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
         };
         if (next.instansi.length > 0) {
             query.instansi = next.instansi;
+        }
+        if (next.kategori !== '') {
+            query.kategori = next.kategori;
         }
         if (next.status !== '') {
             query.status = next.status;
@@ -72,7 +86,8 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
 
     const handleFormSubmit = (e: FormEvent) => {
         e.preventDefault();
-        applyFilters({ instansi: selectedInstansi, dari, sampai, status });
+        setDropdownOpen(false);
+        applyFilters({ instansi: selectedInstansi, kategori, dari, sampai, status });
     };
 
     const applyPreset = (preset: 'bulan' | 'kuartal') => {
@@ -89,6 +104,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
         setSampai(nextSampai);
         applyFilters({
             instansi: selectedInstansi,
+            kategori,
             dari: nextDari,
             sampai: nextSampai,
             status,
@@ -100,6 +116,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
         const nextDari = format(startOfMonth(now), 'yyyy-MM-dd');
         const nextSampai = format(endOfMonth(now), 'yyyy-MM-dd');
         setSelectedInstansi([]);
+        setKategori('');
         setDari(nextDari);
         setSampai(nextSampai);
         setStatus('');
@@ -112,10 +129,33 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
         );
     };
 
+    const selectCategory = (nextKat: KategoriInstansiKey | '') => {
+        setKategori(nextKat);
+        setSelectedInstansi([]);
+    };
+
+    const visibleInstansiOptions = useMemo(() => {
+        if (!kategori) return instansiOptions;
+        return instansiOptions.filter((opt) => opt.kategori === kategori);
+    }, [instansiOptions, kategori]);
+
+    const selectorButtonLabel = useMemo(() => {
+        if (selectedInstansi.length > 0) {
+            return `${selectedInstansi.length} instansi dipilih`;
+        }
+        if (kategori) {
+            return `Kategori: ${KATEGORI_INSTANSI_LABELS[kategori]}`;
+        }
+        return 'Semua Instansi';
+    }, [selectedInstansi, kategori]);
+
     const exportQueryString = useMemo(() => {
         const params = new URLSearchParams();
         params.set('dari', filters.dari);
         params.set('sampai', filters.sampai);
+        if (filters.kategori) {
+            params.set('kategori', filters.kategori);
+        }
         if (filters.status) {
             params.set('status', filters.status);
         }
@@ -151,7 +191,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     <div>
                         <Link
                             href={`/instansi/${info.row.original.instansiId}`}
-                            className="font-semibold text-ink-primary hover:text-accent"
+                            className="font-semibold text-ink-primary transition-colors hover:text-accent"
                         >
                             {info.getValue()}
                         </Link>
@@ -160,6 +200,17 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                         </div>
                     </div>
                 ),
+            }),
+            columnHelper.accessor('kategori', {
+                header: 'Kategori',
+                cell: (info) => {
+                    const val = info.getValue();
+                    return (
+                        <span className="surface-elevated inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium text-ink-secondary">
+                            {KATEGORI_INSTANSI_LABELS[val] ?? val}
+                        </span>
+                    );
+                },
             }),
             columnHelper.accessor('uptimePct', {
                 header: 'Uptime (%)',
@@ -237,15 +288,43 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                 <>
                     <a
                         href={`/laporan/export/excel?${exportQueryString}`}
-                        className="btn-secondary inline-flex h-10 items-center px-4 text-xs"
+                        className="btn-secondary inline-flex h-10 items-center gap-2 px-4 text-xs"
                     >
-                        Export Excel
+                        <svg
+                            className="h-4 w-4 text-status-aktif"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            aria-hidden="true"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                        </svg>
+                        <span>Cetak Excel</span>
                     </a>
                     <a
                         href={`/laporan/export/pdf?${exportQueryString}`}
-                        className="btn-primary-pill inline-flex h-10 items-center px-5 text-xs"
+                        className="btn-primary-pill inline-flex h-10 items-center gap-2 px-5 text-xs"
                     >
-                        Export PDF
+                        <svg
+                            className="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.9"
+                            aria-hidden="true"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"
+                            />
+                        </svg>
+                        <span>Cetak PDF</span>
                     </a>
                 </>
             }
@@ -253,34 +332,26 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             {/* Filter Bar */}
             <form onSubmit={handleFormSubmit} className="surface-card mb-6 p-4">
                 <div className="grid grid-cols-12 items-end gap-3">
-                    {/* Multi-select Instansi */}
+                    {/* Multi-select Instansi + Kategori Instansi */}
                     <div className="relative col-span-3">
                         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
-                            Instansi
+                            Instansi &amp; Kategori
                         </label>
                         <button
                             type="button"
                             onClick={() => setDropdownOpen((v) => !v)}
                             className="input-control flex h-10 w-full items-center justify-between px-3 text-left text-xs"
                         >
-                            <span className="truncate">
-                                {selectedInstansi.length === 0
-                                    ? 'Semua Instansi'
-                                    : `${selectedInstansi.length} instansi dipilih`}
-                            </span>
+                            <span className="truncate">{selectorButtonLabel}</span>
                             <span className="ml-2 text-xs text-ink-secondary">▾</span>
                         </button>
 
                         {dropdownOpen && (
-                            <div className="surface-elevated absolute left-0 top-full z-30 mt-1 max-h-64 w-72 overflow-y-auto rounded-xl p-2 shadow-2xl">
-                                <div className="mb-2 flex items-center justify-between border-b border-line-subtle pb-1.5 text-xs">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedInstansi([])}
-                                        className="text-accent hover:underline"
-                                    >
-                                        Pilih Semua
-                                    </button>
+                            <div className="surface-elevated animate-modal-pop absolute left-0 top-full z-30 mt-1 w-80 rounded-xl p-3 shadow-2xl">
+                                <div className="mb-2 flex items-center justify-between border-b border-line-subtle pb-2 text-xs">
+                                    <span className="font-semibold text-ink-primary">
+                                        Pilih Kategori / Instansi
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => setDropdownOpen(false)}
@@ -289,20 +360,49 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                                         Tutup
                                     </button>
                                 </div>
-                                {instansiOptions.map((opt) => (
-                                    <label
-                                        key={opt.id}
-                                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-xs text-ink-primary hover:bg-surface-card"
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedInstansi.includes(opt.id)}
-                                            onChange={() => toggleInstansi(opt.id)}
-                                            className="rounded border-line-strong"
-                                        />
-                                        <span className="truncate">{opt.nama}</span>
-                                    </label>
-                                ))}
+
+                                {/* Pilihan Kategori Instansi */}
+                                <div className="mb-2.5 grid grid-cols-2 gap-1.5 border-b border-line-subtle pb-2.5">
+                                    {KATEGORI_LIST.map((item) => {
+                                        const active = kategori === item.key && selectedInstansi.length === 0;
+                                        return (
+                                            <button
+                                                key={item.label}
+                                                type="button"
+                                                onClick={() => selectCategory(item.key)}
+                                                className={`rounded-lg px-2.5 py-1.5 text-left text-xs font-medium ${
+                                                    active
+                                                        ? 'btn-primary-pill text-center'
+                                                        : 'surface-card text-ink-secondary hover:text-ink-primary'
+                                                }`}
+                                            >
+                                                {item.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="max-h-52 overflow-y-auto pr-1">
+                                    {visibleInstansiOptions.map((opt) => (
+                                        <label
+                                            key={opt.id}
+                                            className="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs text-ink-primary hover:bg-surface-card"
+                                        >
+                                            <span className="flex items-center gap-2 truncate">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedInstansi.includes(opt.id)}
+                                                    onChange={() => toggleInstansi(opt.id)}
+                                                    className="rounded border-line-strong"
+                                                />
+                                                <span className="truncate">{opt.nama}</span>
+                                            </span>
+                                            <span className="shrink-0 text-[10px] text-ink-secondary">
+                                                {KATEGORI_INSTANSI_LABELS[opt.kategori]}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>

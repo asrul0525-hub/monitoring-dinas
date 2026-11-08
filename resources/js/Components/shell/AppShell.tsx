@@ -1,6 +1,7 @@
+import { DashboardSkeleton } from '@/Components/ui/Skeleton';
 import { SharedProps, StatusKey } from '@/types/monitoring';
-import { Head, usePage } from '@inertiajs/react';
-import { PropsWithChildren } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { RailNav } from './RailNav';
 import { StatusTabs } from './StatusTabs';
 import { TopBar } from './TopBar';
@@ -24,6 +25,23 @@ export function AppShell({
     children,
 }: AppShellProps) {
     const { flash } = usePage<SharedProps>().props;
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    useEffect(() => {
+        const removeStart = router.on('start', (event) => {
+            if (event.detail.visit.method === 'get' || event.detail.visit.url.pathname === '/cek-semua') {
+                setIsNavigating(true);
+            }
+        });
+        const removeFinish = router.on('finish', () => {
+            setIsNavigating(false);
+        });
+
+        return () => {
+            removeStart();
+            removeFinish();
+        };
+    }, []);
 
     return (
         <div className="min-h-screen pl-[104px] pr-8 pt-6 pb-24">
@@ -36,7 +54,7 @@ export function AppShell({
                 {flash?.status && (
                     <div
                         role="status"
-                        className="status-badge--aktif mt-4 flex items-center justify-between rounded-xl px-4 py-2.5 text-xs font-medium"
+                        className="status-badge--aktif animate-page-enter mt-4 flex items-center justify-between rounded-xl px-4 py-2.5 text-xs font-medium"
                     >
                         <span>{flash.status}</span>
                     </div>
@@ -50,7 +68,9 @@ export function AppShell({
                     {actions && <div className="flex items-center gap-3">{actions}</div>}
                 </div>
 
-                <main>{children}</main>
+                <main className="animate-page-enter">
+                    {isNavigating ? <DashboardSkeleton /> : children}
+                </main>
             </div>
 
             {showStatusTabs && <StatusTabs activeStatus={activeStatus} />}

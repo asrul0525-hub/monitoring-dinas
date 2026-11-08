@@ -40,14 +40,14 @@ export function DeleteInstansiDialog({ target, onClose }: DeleteInstansiDialogPr
             <div
                 aria-hidden="true"
                 onClick={onClose}
-                className="fixed inset-0"
+                className="fixed inset-0 backdrop-blur-sm"
                 style={{ background: 'var(--bg-scrim)' }}
             />
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="delete-dialog-title"
-                className="surface-card relative z-10 w-full max-w-md p-6 shadow-2xl"
+                className="surface-card animate-modal-pop relative z-10 w-full max-w-md p-6 shadow-2xl"
             >
                 <h2 id="delete-dialog-title" className="text-base font-bold text-ink-primary">
                     Hapus {target.nama}? Riwayat monitoringnya ikut terhapus.
@@ -69,7 +69,7 @@ export function DeleteInstansiDialog({ target, onClose }: DeleteInstansiDialogPr
                         type="button"
                         onClick={handleConfirm}
                         disabled={deleting}
-                        className="status-badge--tidak h-9 rounded-full px-5 text-xs font-semibold"
+                        className="btn-action-delete h-9 rounded-full px-5 text-xs font-semibold"
                     >
                         {deleting ? 'Menghapus…' : 'Hapus'}
                     </button>

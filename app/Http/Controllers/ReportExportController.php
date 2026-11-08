@@ -19,6 +19,7 @@ class ReportExportController extends Controller
             $request->dariDate(),
             $request->sampaiDate(),
             $request->statusEnum(),
+            $request->kategoriValue(),
         );
 
         $filters = $request->filterPayload();
@@ -34,6 +35,7 @@ class ReportExportController extends Controller
             $request->dariDate(),
             $request->sampaiDate(),
             $request->statusEnum(),
+            $request->kategoriValue(),
         );
 
         $filters = $request->filterPayload();
@@ -42,7 +44,7 @@ class ReportExportController extends Controller
         $pdf = Pdf::loadView('reports.pdf', [
             'rows' => $rows,
             'filters' => $filters,
-            'printedAt' => now()->format('d M Y H:i').' WIB',
+            'printedAt' => now()->format('d M Y H:i').' WITA',
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download($filename);

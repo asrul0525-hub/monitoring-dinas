@@ -1,4 +1,6 @@
+import { SharedProps } from '@/types/monitoring';
 import { Link, usePage } from '@inertiajs/react';
+import { deriveUserIdentity } from './TopBar';
 
 interface NavItem {
     label: string;
@@ -69,18 +71,25 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function RailNav() {
-    const { url } = usePage();
+    const page = usePage<SharedProps>();
+    const url = page.url;
+    const { displayName, shortLabel, initials } = deriveUserIdentity(page.props.auth?.user);
 
     return (
         <nav
             aria-label="Navigasi utama"
             className="glass-shell fixed left-5 top-1/2 z-40 flex w-16 -translate-y-1/2 flex-col items-center gap-3 rounded-full py-5"
         >
-            <div className="mb-2 flex flex-col items-center">
+            <div
+                title={`${displayName} (${page.props.auth?.user?.email ?? ''})`}
+                className="mb-2 flex flex-col items-center"
+            >
                 <div className="surface-elevated flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-accent">
-                    SM
+                    {initials}
                 </div>
-                <span className="mt-1 text-[9px] font-semibold tracking-wider text-ink-secondary">SIMON</span>
+                <span className="mt-1 max-w-[54px] truncate text-center text-[9px] font-semibold tracking-wider text-ink-secondary">
+                    {shortLabel}
+                </span>
             </div>
 
             {NAV_ITEMS.map((item) => {
@@ -92,7 +101,7 @@ export function RailNav() {
                         title={item.label}
                         aria-label={item.label}
                         aria-current={active ? 'page' : undefined}
-                        className={`group relative flex h-11 w-11 items-center justify-center rounded-full transition-colors ${
+                        className={`group relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
                             active
                                 ? 'bg-accent-soft text-accent ring-1 ring-accent'
                                 : 'text-ink-secondary hover:bg-surface-elevated hover:text-ink-primary'

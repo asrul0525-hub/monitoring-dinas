@@ -1,4 +1,4 @@
-import { StatusDoughnut } from '@/Components/charts/StatusDoughnut';
+import { StatusBarChart } from '@/Components/charts/StatusBarChart';
 import { AppShell } from '@/Components/shell/AppShell';
 import { FreshnessText } from '@/Components/status/FreshnessText';
 import { StatusBadge } from '@/Components/status/StatusBadge';
@@ -58,18 +58,18 @@ export default function Dashboard({
             activeStatus={null}
         >
             <div className="grid grid-cols-12 gap-5">
-                {/* Large card 1: Doughnut */}
+                {/* Large card 1: Horizontal Bar Chart */}
                 <section className="surface-card col-span-5 flex flex-col justify-between p-6">
                     <div>
                         <h2 className="text-base font-semibold text-ink-primary">
                             Status {checkedCount} dari {totalCount} website per cek terakhir
                         </h2>
                         <p className="mt-0.5 text-xs text-ink-secondary">
-                            Klik segmen untuk membuka daftar instansi pada zona status tersebut
+                            Klik batang status untuk menyaring daftar instansi pada zona tersebut
                         </p>
                     </div>
                     <div className="mt-4">
-                        <StatusDoughnut counts={statusCounts} />
+                        <StatusBarChart counts={statusCounts} />
                     </div>
                 </section>
 

@@ -1,7 +1,7 @@
 import { FreshnessText } from '@/Components/status/FreshnessText';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatMs } from '@/lib/format';
-import { InstansiRow } from '@/types/monitoring';
+import { InstansiRow, KATEGORI_INSTANSI_LABELS } from '@/types/monitoring';
 import { Link, router } from '@inertiajs/react';
 import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 
@@ -12,12 +12,6 @@ interface InstansiTableProps {
 }
 
 const columnHelper = createColumnHelper<InstansiRow>();
-
-const SOURCE_LABELS: Record<string, string> = {
-    sitemap: 'Sitemap',
-    rss: 'RSS',
-    dom: 'DOM',
-};
 
 export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
     const columns = [
@@ -31,7 +25,7 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
                 <Link
                     href={`/instansi/${info.row.original.id}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="font-semibold text-ink-primary hover:text-accent"
+                    className="font-semibold text-ink-primary transition-colors hover:text-accent"
                 >
                     {info.getValue()}
                 </Link>
@@ -80,7 +74,7 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
                         target="_blank"
                         rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex max-w-[220px] items-center gap-1 truncate text-xs text-ink-secondary hover:text-accent"
+                        className="inline-flex max-w-[220px] items-center gap-1 truncate text-xs text-ink-secondary transition-colors hover:text-accent"
                     >
                         <span className="truncate">{display}</span>
                         <span aria-hidden="true">↗</span>
@@ -88,13 +82,13 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
                 );
             },
         }),
-        columnHelper.accessor('contentSource', {
-            header: 'Sumber konten',
+        columnHelper.accessor('kategori', {
+            header: 'Kategori instansi',
             cell: (info) => {
                 const val = info.getValue();
                 return (
-                    <span className="surface-elevated inline-flex rounded-md px-2 py-0.5 text-xs text-ink-secondary">
-                        {val ? SOURCE_LABELS[val] ?? val : '—'}
+                    <span className="surface-elevated inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium text-ink-secondary">
+                        {KATEGORI_INSTANSI_LABELS[val] ?? val}
                     </span>
                 );
             },
@@ -105,20 +99,48 @@ export function InstansiTable({ data, onEdit, onDelete }: InstansiTableProps) {
             cell: (info) => {
                 const row = info.row.original;
                 return (
-                    <div className="flex items-center justify-end gap-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <button
                             type="button"
                             onClick={() => onEdit(row)}
-                            className="text-xs font-medium text-ink-primary hover:text-accent"
+                            className="btn-action-edit group inline-flex h-8 items-center gap-1.5 px-3 text-xs"
                         >
-                            Ubah
+                            <svg
+                                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:-rotate-12 group-hover:scale-110"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.9"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"
+                                />
+                            </svg>
+                            <span>Ubah</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => onDelete(row)}
-                            className="text-xs font-medium text-status-tidak hover:underline"
+                            className="btn-action-delete group inline-flex h-8 items-center gap-1.5 px-3 text-xs"
                         >
-                            Hapus
+                            <svg
+                                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:rotate-6 group-hover:scale-110"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.9"
+                                aria-hidden="true"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                            </svg>
+                            <span>Hapus</span>
                         </button>
                     </div>
                 );

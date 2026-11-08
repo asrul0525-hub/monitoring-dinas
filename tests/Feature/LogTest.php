@@ -87,3 +87,23 @@ it('memfilter log berdasarkan instansi dan hasil=sukses', function () {
             ->where('rows.data.0.instansi.id', $instansiA->id)
         );
 });
+
+it('memfilter log berdasarkan kategori instansi', function () {
+    $user = User::factory()->create();
+    $instansiKec = Instansi::factory()->create(['nama' => 'Kecamatan Contoh', 'kategori' => 'kec_kel_pkm']);
+    $instansiDinas = Instansi::factory()->create(['nama' => 'Dinas Contoh', 'kategori' => 'dinas']);
+
+    Check::factory()->create(['instansi_id' => $instansiKec->id]);
+    Check::factory()->create(['instansi_id' => $instansiDinas->id]);
+
+    $this->actingAs($user)
+        ->get('/log?kategori=kec_kel_pkm')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Log')
+            ->where('filters.kategori', 'kec_kel_pkm')
+            ->has('rows.data', 1)
+            ->where('rows.data.0.instansi.id', $instansiKec->id)
+        );
+});
+

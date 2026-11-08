@@ -22,6 +22,7 @@ class ReportExport implements FromCollection, WithHeadings
     {
         return [
             'Nama Instansi',
+            'Kategori Instansi',
             'URL Website',
             'Uptime (%)',
             'Jumlah Down',
@@ -38,7 +39,7 @@ class ReportExport implements FromCollection, WithHeadings
     {
         if ($this->rows->isEmpty()) {
             return collect([
-                ['Tidak ada data', '', '', '', '', '', ''],
+                ['Tidak ada data', '', '', '', '', '', '', ''],
             ]);
         }
 
@@ -50,8 +51,15 @@ class ReportExport implements FromCollection, WithHeadings
                 default => 'Menunggu cek pertama',
             };
 
+            $kategoriLabel = match ($row['kategori'] ?? 'dinas') {
+                'vertikal' => 'Instansi Vertikal',
+                'kec_kel_pkm' => 'Kec/Kel/PKM',
+                default => 'Dinas',
+            };
+
             return [
                 $row['nama'],
+                $kategoriLabel,
                 $row['url'],
                 $row['uptimePct'] !== null ? number_format((float) $row['uptimePct'], 1) : '—',
                 $row['downtimeCount'],

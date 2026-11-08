@@ -15,16 +15,25 @@ class LogController extends Controller
         $instansiFilter = $request->query('instansi');
         $instansiId = is_numeric($instansiFilter) ? (int) $instansiFilter : null;
 
+        $kategoriFilter = $request->query('kategori');
+        $kategori = is_string($kategoriFilter) && in_array($kategoriFilter, ['vertikal', 'dinas', 'kec_kel_pkm'], true)
+            ? $kategoriFilter
+            : null;
+
         $hasilFilter = $request->query('hasil');
         $hasil = in_array($hasilFilter, ['sukses', 'gagal'], true) ? $hasilFilter : null;
 
         $query = Check::query()
-            ->with('instansi:id,nama')
+            ->with('instansi:id,nama,kategori')
             ->orderByDesc('checked_at')
             ->orderByDesc('id');
 
         if ($instansiId !== null) {
             $query->where('instansi_id', $instansiId);
+        }
+
+        if ($kategori !== null) {
+            $query->whereHas('instansi', fn ($q) => $q->where('kategori', $kategori));
         }
 
         if ($hasil === 'sukses') {
@@ -42,6 +51,7 @@ class LogController extends Controller
             'instansi' => [
                 'id' => $check->instansi?->id ?? $check->instansi_id,
                 'nama' => $check->instansi?->nama ?? '—',
+                'kategori' => $check->instansi?->kategori ?: 'dinas',
             ],
             'httpCode' => $check->http_code,
             'responseMs' => $check->response_ms,
@@ -51,10 +61,11 @@ class LogController extends Controller
 
         $instansiOptions = Instansi::query()
             ->orderBy('nama')
-            ->get(['id', 'nama'])
+            ->get(['id', 'nama', 'kategori'])
             ->map(fn (Instansi $i) => [
                 'id' => $i->id,
                 'nama' => $i->nama,
+                'kategori' => $i->kategori ?: 'dinas',
             ])
             ->values()
             ->all();
@@ -64,6 +75,7 @@ class LogController extends Controller
             'instansiOptions' => $instansiOptions,
             'filters' => [
                 'instansi' => $instansiId,
+                'kategori' => $kategori,
                 'hasil' => $hasil,
             ],
         ]);

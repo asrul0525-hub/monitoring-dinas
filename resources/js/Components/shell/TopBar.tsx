@@ -1,16 +1,46 @@
-import { formatTimeWib } from '@/lib/format';
 import { SharedProps } from '@/types/monitoring';
 import { Link, router, usePage } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { AlertBell } from './AlertBell';
+import { RealtimeClockWita } from './RealtimeClockWita';
 import { ThemeToggle } from './ThemeToggle';
 
 interface TopBarProps {
     initialQuery?: string;
 }
 
+export function deriveUserIdentity(user?: { name?: string; email?: string } | null): {
+    displayName: string;
+    shortLabel: string;
+    initials: string;
+} {
+    const emailPrefix = user?.email
+        ? user.email
+              .split('@')[0]
+              .replace(/[._-]+/g, ' ')
+              .trim()
+        : '';
+
+    const formattedFromEmail = emailPrefix
+        ? emailPrefix
+              .split(/\s+/)
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')
+        : '';
+
+    const displayName = formattedFromEmail || user?.name || 'Admin';
+    const words = displayName.split(/\s+/).filter(Boolean);
+    const shortLabel = (words[0] ?? 'ADMIN').slice(0, 8).toUpperCase();
+    const initials =
+        words.length >= 2
+            ? `${words[0][0]}${words[1][0]}`.toUpperCase()
+            : displayName.slice(0, 2).toUpperCase();
+
+    return { displayName, shortLabel, initials };
+}
+
 export function TopBar({ initialQuery = '' }: TopBarProps) {
-    const { auth, schedule, alerts, isSampleData } = usePage<SharedProps>().props;
+    const { auth, alerts, isSampleData } = usePage<SharedProps>().props;
     const [q, setQ] = useState(initialQuery);
     const [checkingAll, setCheckingAll] = useState(false);
     const [accountOpen, setAccountOpen] = useState(false);
@@ -34,13 +64,7 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
         );
     };
 
-    const userName = auth.user?.name ?? 'Admin Diskominfo';
-    const initials = userName
-        .split(' ')
-        .map((p) => p[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
+    const { displayName, initials } = deriveUserIdentity(auth.user);
 
     return (
         <header className="glass-shell flex h-[60px] items-center justify-between gap-4 rounded-full px-5">
@@ -51,19 +75,19 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
                         onClick={() => setAccountOpen((v) => !v)}
                         aria-expanded={accountOpen}
                         aria-label="Menu akun Super Admin"
-                        className="surface-elevated flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-ink-primary"
+                        className="surface-elevated flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-accent hover:border-accent"
                     >
                         {initials}
                     </button>
                     {accountOpen && (
-                        <div className="surface-card absolute left-0 top-11 z-50 w-52 p-2 shadow-2xl">
+                        <div className="surface-card animate-modal-pop absolute left-0 top-11 z-50 w-56 p-2 shadow-2xl">
                             <div className="border-b border-line-subtle px-3 py-2">
-                                <p className="text-xs font-semibold text-ink-primary">{userName}</p>
-                                <p className="text-[11px] text-ink-secondary">{auth.user?.email}</p>
+                                <p className="text-xs font-semibold text-ink-primary">{displayName}</p>
+                                <p className="truncate text-[11px] text-ink-secondary">{auth.user?.email}</p>
                             </div>
                             <Link
                                 href="/pengaturan"
-                                className="mt-1 block rounded-lg px-3 py-1.5 text-xs text-ink-primary hover:bg-surface-elevated"
+                                className="mt-1 block rounded-lg px-3 py-1.5 text-xs text-ink-primary transition hover:bg-surface-elevated"
                             >
                                 Pengaturan Akun
                             </Link>
@@ -71,7 +95,7 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
                                 href="/logout"
                                 method="post"
                                 as="button"
-                                className="mt-1 block w-full rounded-lg px-3 py-1.5 text-left text-xs text-status-tidak hover:bg-surface-elevated"
+                                className="mt-1 block w-full rounded-lg px-3 py-1.5 text-left text-xs text-status-tidak transition hover:bg-surface-elevated"
                             >
                                 Keluar (Logout)
                             </Link>
@@ -82,7 +106,7 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
                 <div>
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-ink-primary">
-                            Selamat datang, {userName}
+                            Selamat datang, {displayName}
                         </span>
                         {isSampleData && (
                             <span
@@ -122,10 +146,8 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
                 </div>
             </form>
 
-            <div className="flex items-center gap-3">
-                <span className="tabular-nums text-xs text-ink-secondary">
-                    Cek terakhir {formatTimeWib(schedule.lastCheckAt)} · berikutnya {formatTimeWib(schedule.nextCheckAt)}
-                </span>
+            <div className="flex items-center gap-2.5">
+                <RealtimeClockWita />
 
                 <button
                     type="button"

@@ -61,7 +61,7 @@
     <div class="meta">
         <span><strong>Periode:</strong> {{ $filters['dari'] }} s/d {{ $filters['sampai'] }}</span>
         <span><strong>Filter Status:</strong> {{ $filters['status'] ? strtoupper($filters['status']) : 'Semua Status' }}</span>
-        <span><strong>Filter Instansi:</strong> {{ count($filters['instansi']) > 0 ? count($filters['instansi']) . ' instansi dipilih' : 'Semua Instansi' }}</span>
+        <span><strong>Filter Instansi:</strong> {{ count($filters['instansi']) > 0 ? count($filters['instansi']) . ' instansi dipilih' : ($filters['kategori'] ?? null ? 'Kategori ' . strtoupper($filters['kategori']) : 'Semua Instansi') }}</span>
         <span><strong>Dicetak pada:</strong> {{ $printedAt }}</span>
     </div>
 
@@ -69,12 +69,13 @@
         <thead>
             <tr>
                 <th style="width: 4%;">No</th>
-                <th style="width: 24%;">Nama Instansi</th>
-                <th style="width: 22%;">URL Website</th>
-                <th style="width: 10%;">Uptime (%)</th>
-                <th style="width: 10%;">Jumlah Down</th>
-                <th style="width: 12%;">Rata-rata Response Time</th>
-                <th style="width: 18%;">Hari Sejak Update / Status Akhir</th>
+                <th style="width: 20%;">Nama Instansi</th>
+                <th style="width: 12%;">Kategori</th>
+                <th style="width: 18%;">URL Website</th>
+                <th style="width: 9%;">Uptime (%)</th>
+                <th style="width: 9%;">Jumlah Down</th>
+                <th style="width: 11%;">Rata-rata Response Time</th>
+                <th style="width: 17%;">Hari Sejak Update / Status Akhir</th>
             </tr>
         </thead>
         <tbody>
@@ -86,10 +87,16 @@
                         'tidak-aktif' => 'TIDAK AKTIF',
                         default => 'MENUNGGU CEK PERTAMA',
                     };
+                    $kategoriLabel = match ($row['kategori'] ?? 'dinas') {
+                        'vertikal' => 'Instansi Vertikal',
+                        'kec_kel_pkm' => 'Kec/Kel/PKM',
+                        default => 'Dinas',
+                    };
                 @endphp
                 <tr>
                     <td class="num">{{ $index + 1 }}</td>
                     <td><strong>{{ $row['nama'] }}</strong></td>
+                    <td>{{ $kategoriLabel }}</td>
                     <td>{{ $row['url'] }}</td>
                     <td class="num">{{ $row['uptimePct'] !== null ? number_format((float) $row['uptimePct'], 1) . '%' : '—' }}</td>
                     <td class="num">{{ $row['downtimeCount'] }} kali</td>
@@ -101,7 +108,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" style="text-align: center; padding: 16px;">Tidak ada data</td>
+                    <td colspan="8" style="text-align: center; padding: 16px;">Tidak ada data</td>
                 </tr>
             @endforelse
         </tbody>

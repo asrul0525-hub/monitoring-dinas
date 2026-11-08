@@ -1,7 +1,7 @@
 import { AppShell } from '@/Components/shell/AppShell';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatDateTimeId, formatMs } from '@/lib/format';
-import { Paginated, SharedProps, StatusKey } from '@/types/monitoring';
+import { KATEGORI_INSTANSI_LABELS, KategoriInstansiKey, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
 import { Link, router } from '@inertiajs/react';
 import {
     createColumnHelper,
@@ -9,7 +9,7 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 interface LogRow {
     id: number;
@@ -17,6 +17,7 @@ interface LogRow {
     instansi: {
         id: number;
         nama: string;
+        kategori: KategoriInstansiKey;
     };
     httpCode: number | null;
     responseMs: number | null;
@@ -26,28 +27,43 @@ interface LogRow {
 
 interface LogProps extends SharedProps {
     rows: Paginated<LogRow>;
-    instansiOptions: { id: number; nama: string }[];
+    instansiOptions: { id: number; nama: string; kategori: KategoriInstansiKey }[];
     filters: {
         instansi: number | null;
+        kategori: KategoriInstansiKey | null;
         hasil: 'sukses' | 'gagal' | null;
     };
 }
 
 const columnHelper = createColumnHelper<LogRow>();
 
+const KATEGORI_LIST: { key: KategoriInstansiKey | null; label: string }[] = [
+    { key: null, label: 'Semua Instansi' },
+    { key: 'vertikal', label: 'Instansi Vertikal' },
+    { key: 'dinas', label: 'Dinas' },
+    { key: 'kec_kel_pkm', label: 'Kec/Kel/PKM' },
+];
+
 export default function Log({ rows, instansiOptions, filters }: LogProps) {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+
     const updateFilter = (next: {
         instansi?: number | null;
+        kategori?: KategoriInstansiKey | null;
         hasil?: 'sukses' | 'gagal' | null;
     }) => {
         const merged = {
             instansi: next.instansi !== undefined ? next.instansi : filters.instansi,
+            kategori: next.kategori !== undefined ? next.kategori : filters.kategori,
             hasil: next.hasil !== undefined ? next.hasil : filters.hasil,
         };
 
         const query: Record<string, string | number> = {};
         if (merged.instansi !== null) {
             query.instansi = merged.instansi;
+        }
+        if (merged.kategori !== null) {
+            query.kategori = merged.kategori;
         }
         if (merged.hasil !== null) {
             query.hasil = merged.hasil;
@@ -60,8 +76,25 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
     };
 
     const resetFilters = () => {
+        setDropdownOpen(false);
         router.get('/log');
     };
+
+    const visibleInstansiOptions = useMemo(() => {
+        if (!filters.kategori) return instansiOptions;
+        return instansiOptions.filter((opt) => opt.kategori === filters.kategori);
+    }, [instansiOptions, filters.kategori]);
+
+    const selectorLabel = useMemo(() => {
+        if (filters.instansi !== null) {
+            const found = instansiOptions.find((o) => o.id === filters.instansi);
+            return found ? found.nama : 'Instansi dipilih';
+        }
+        if (filters.kategori !== null) {
+            return `Kategori: ${KATEGORI_INSTANSI_LABELS[filters.kategori]}`;
+        }
+        return 'Semua Instansi';
+    }, [filters.instansi, filters.kategori, instansiOptions]);
 
     const columns = useMemo(
         () => [
@@ -78,12 +111,17 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                 cell: (info) => {
                     const inst = info.getValue();
                     return (
-                        <Link
-                            href={`/instansi/${inst.id}`}
-                            className="font-medium text-ink-primary hover:text-accent"
-                        >
-                            {inst.nama}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href={`/instansi/${inst.id}`}
+                                className="font-medium text-ink-primary transition-colors hover:text-accent"
+                            >
+                                {inst.nama}
+                            </Link>
+                            <span className="surface-elevated rounded-full px-2 py-0.5 text-[10px] font-medium text-ink-secondary">
+                                {KATEGORI_INSTANSI_LABELS[inst.kategori] ?? inst.kategori}
+                            </span>
+                        </div>
                     );
                 },
             }),
@@ -154,30 +192,85 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             {/* Filter Bar */}
             <div className="surface-card mb-5 flex flex-wrap items-center justify-between gap-4 p-4">
                 <div className="flex items-center gap-3">
-                    <div>
-                        <label
-                            htmlFor="log-instansi"
-                            className="mr-2 text-xs font-medium text-ink-secondary"
+                    {/* Unified Instansi + Kategori Popover Selector (sama seperti Laporan) */}
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setDropdownOpen((v) => !v)}
+                            className="input-control flex h-9 min-w-[240px] items-center justify-between px-3 text-left text-xs"
                         >
-                            Instansi:
-                        </label>
-                        <select
-                            id="log-instansi"
-                            value={filters.instansi ?? ''}
-                            onChange={(e) =>
-                                updateFilter({
-                                    instansi: e.target.value ? Number(e.target.value) : null,
-                                })
-                            }
-                            className="input-control h-9 px-3 text-xs"
-                        >
-                            <option value="">Semua Instansi</option>
-                            {instansiOptions.map((opt) => (
-                                <option key={opt.id} value={opt.id}>
-                                    {opt.nama}
-                                </option>
-                            ))}
-                        </select>
+                            <span className="truncate">{selectorLabel}</span>
+                            <span className="ml-2 text-xs text-ink-secondary">▾</span>
+                        </button>
+
+                        {dropdownOpen && (
+                            <div className="surface-elevated animate-modal-pop absolute left-0 top-full z-30 mt-1 w-80 rounded-xl p-3 shadow-2xl">
+                                <div className="mb-2 flex items-center justify-between border-b border-line-subtle pb-2 text-xs">
+                                    <span className="font-semibold text-ink-primary">
+                                        Pilih Kategori / Instansi
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDropdownOpen(false)}
+                                        className="text-ink-secondary hover:text-ink-primary"
+                                    >
+                                        Tutup
+                                    </button>
+                                </div>
+
+                                <div className="mb-2.5 grid grid-cols-2 gap-1.5 border-b border-line-subtle pb-2.5">
+                                    {KATEGORI_LIST.map((item) => {
+                                        const active =
+                                            filters.kategori === item.key && filters.instansi === null;
+                                        return (
+                                            <button
+                                                key={item.label}
+                                                type="button"
+                                                onClick={() => {
+                                                    setDropdownOpen(false);
+                                                    updateFilter({ kategori: item.key, instansi: null });
+                                                }}
+                                                className={`rounded-lg px-2.5 py-1.5 text-left text-xs font-medium ${
+                                                    active
+                                                        ? 'btn-primary-pill text-center'
+                                                        : 'surface-card text-ink-secondary hover:text-ink-primary'
+                                                }`}
+                                            >
+                                                {item.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="max-h-52 overflow-y-auto pr-1">
+                                    {visibleInstansiOptions.map((opt) => {
+                                        const isSelected = filters.instansi === opt.id;
+                                        return (
+                                            <button
+                                                key={opt.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setDropdownOpen(false);
+                                                    updateFilter({
+                                                        instansi: isSelected ? null : opt.id,
+                                                    });
+                                                }}
+                                                className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs ${
+                                                    isSelected
+                                                        ? 'bg-accent-soft font-semibold text-accent'
+                                                        : 'text-ink-primary hover:bg-surface-card'
+                                                }`}
+                                            >
+                                                <span className="truncate">{opt.nama}</span>
+                                                <span className="shrink-0 text-[10px] text-ink-secondary">
+                                                    {KATEGORI_INSTANSI_LABELS[opt.kategori]}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-1.5">
@@ -210,7 +303,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                     </div>
                 </div>
 
-                {(filters.instansi !== null || filters.hasil !== null) && (
+                {(filters.instansi !== null || filters.kategori !== null || filters.hasil !== null) && (
                     <button
                         type="button"
                         onClick={resetFilters}
@@ -228,7 +321,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                         <p className="text-sm font-medium text-ink-secondary">
                             Tidak ada catatan log monitoring untuk filter yang dipilih.
                         </p>
-                        {(filters.instansi !== null || filters.hasil !== null) && (
+                        {(filters.instansi !== null || filters.kategori !== null || filters.hasil !== null) && (
                             <button
                                 type="button"
                                 onClick={resetFilters}
