@@ -30,7 +30,7 @@ it('menyediakan statusCounts, isSampleData, schedule, dan alerts pada shared pro
 
     $response->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('isSampleData', true)
+            ->where('isSampleData', false)
             ->where('statusCounts.aktif', 26)
             ->where('statusCounts.kurang-aktif', 9)
             ->where('statusCounts.tidak-aktif', 5)

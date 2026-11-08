@@ -1,0 +1,108 @@
+<?php
+
+use App\Enums\ContentSource;
+use App\Enums\Status;
+use App\Models\Instansi;
+use App\Models\Setting;
+use App\Monitoring\LiveMonitor;
+use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+uses(TestCase::class, RefreshDatabase::class);
+
+it('LiveMonitor mencatat status Aktif saat HTTP 200 dan feed sitemap memiliki konten mutakhir', function () {
+    Setting::put('freshness_days', 30);
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://diskominfo.hsu.go.id' => Http::response('<html><body>Portal Diskominfo HSU</body></html>', 200),
+        'https://diskominfo.hsu.go.id/sitemap.xml' => Http::response(
+            '<?xml version="1.0"?><urlset><url><loc>https://diskominfo.hsu.go.id/berita/1</loc><lastmod>2026-11-06T09:00:00+08:00</lastmod></url></urlset>',
+            200
+        ),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'Diskominfo HSU',
+        'url' => 'https://diskominfo.hsu.go.id',
+        'feed_url' => 'https://diskominfo.hsu.go.id/sitemap.xml',
+        'status' => null,
+    ]);
+
+    $monitor = app(LiveMonitor::class);
+    $check = $monitor->check($instansi, $now);
+
+    expect($check->http_code)->toBe(200)
+        ->and($check->status)->toBe(Status::Aktif)
+        ->and($check->content_source)->toBe(ContentSource::Sitemap)
+        ->and($check->content_date?->format('Y-m-d'))->toBe('2026-11-06')
+        ->and($check->response_ms)->toBeInt()->toBeGreaterThanOrEqual(0)
+        ->and($check->error)->toBeNull();
+
+    $instansi->refresh();
+    expect($instansi->status)->toBe(Status::Aktif)
+        ->and($instansi->last_http_code)->toBe(200)
+        ->and($instansi->down_since)->toBeNull();
+});
+
+it('LiveMonitor mengekstrak tanggal dari HTML meta dan menandai Kurang Aktif bila konten lebih tua dari ambang hari', function () {
+    Setting::put('freshness_days', 30);
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://bapperida.hsu.go.id' => Http::response(
+            '<html><head><meta property="article:published_time" content="2026-08-01T08:00:00+08:00"></head><body></body></html>',
+            200
+        ),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'Bapperida HSU',
+        'url' => 'https://bapperida.hsu.go.id',
+        'feed_url' => null,
+        'status' => null,
+    ]);
+
+    $check = app(LiveMonitor::class)->check($instansi, $now);
+
+    expect($check->status)->toBe(Status::KurangAktif)
+        ->and($check->content_source)->toBe(ContentSource::Dom)
+        ->and($check->content_date?->format('Y-m-d'))->toBe('2026-08-01');
+});
+
+it('LiveMonitor mencatat Tidak Aktif dan mengisi down_since saat menerima HTTP 502 atau ConnectionException', function () {
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://dinkes.hsu.go.id' => Http::response('Bad Gateway', 502),
+        'https://timeout.hsu.go.id' => fn () => throw new ConnectionException('cURL error 28: Operation timed out after 10000 milliseconds'),
+    ]);
+
+    $instansi502 = Instansi::factory()->create([
+        'url' => 'https://dinkes.hsu.go.id',
+        'status' => Status::Aktif,
+        'down_since' => null,
+    ]);
+
+    $check502 = app(LiveMonitor::class)->check($instansi502, $now);
+    expect($check502->status)->toBe(Status::TidakAktif)
+        ->and($check502->http_code)->toBe(502)
+        ->and($check502->error)->toContain('502');
+
+    $instansi502->refresh();
+    expect($instansi502->status)->toBe(Status::TidakAktif)
+        ->and($instansi502->down_since?->timestamp)->toBe($now->timestamp);
+
+    $instansiTimeout = Instansi::factory()->create([
+        'url' => 'https://timeout.hsu.go.id',
+        'status' => null,
+    ]);
+
+    $checkTimeout = app(LiveMonitor::class)->check($instansiTimeout, $now);
+    expect($checkTimeout->status)->toBe(Status::TidakAktif)
+        ->and($checkTimeout->http_code)->toBeNull()
+        ->and($checkTimeout->error)->not->toBeNull();
+});

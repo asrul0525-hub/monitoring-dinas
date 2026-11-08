@@ -7,12 +7,20 @@ use App\Models\Instansi;
 use App\Models\Setting;
 use App\Models\User;
 use App\Monitoring\RecalculateStatuses;
+use Illuminate\Support\Facades\Http;
 
 it('mengarahkan tamu ke login saat memanggil cek-semua', function () {
     $this->post('/cek-semua')->assertRedirect('/login');
 });
 
 it('POST /instansi/{id}/cek membuat tepat 1 Check baru dan memperbarui last_checked_at', function () {
+    Http::fake([
+        '*' => Http::response(
+            '<html><head><meta property="article:published_time" content="'.now()->subDays(2)->toIso8601String().'"></head></html>',
+            200
+        ),
+    ]);
+
     $user = User::factory()->create();
     $instansi = Instansi::factory()->create([
         'status' => null,
@@ -32,6 +40,13 @@ it('POST /instansi/{id}/cek membuat tepat 1 Check baru dan memperbarui last_chec
 });
 
 it('POST /cek-semua mengecek seluruh instansi', function () {
+    Http::fake([
+        '*' => Http::response(
+            '<html><head><meta property="article:published_time" content="'.now()->subDays(2)->toIso8601String().'"></head></html>',
+            200
+        ),
+    ]);
+
     $user = User::factory()->create();
     Instansi::factory()->count(3)->create(['status' => null, 'last_checked_at' => null]);
 
