@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Instansi;
+use App\Monitoring\BatchMonitorRunner;
 use App\Monitoring\Monitor;
 use Illuminate\Http\RedirectResponse;
 
@@ -15,11 +16,9 @@ class InstansiCheckController extends Controller
         return back()->with('status', "Pengecekan {$instansi->nama} selesai.");
     }
 
-    public function checkAll(Monitor $monitor): RedirectResponse
+    public function checkAll(BatchMonitorRunner $runner): RedirectResponse
     {
-        foreach (Instansi::query()->cursor() as $instansi) {
-            $monitor->check($instansi);
-        }
+        $runner->runAll(async: false);
 
         return back()->with('status', 'Pengecekan seluruh instansi selesai.');
     }
