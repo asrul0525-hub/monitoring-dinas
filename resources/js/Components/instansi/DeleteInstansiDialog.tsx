@@ -1,6 +1,7 @@
 import { InstansiRow } from '@/types/monitoring';
 import { router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface DeleteInstansiDialogProps {
     target: InstansiRow | null;
@@ -35,8 +36,8 @@ export function DeleteInstansiDialog({ target, onClose }: DeleteInstansiDialogPr
         });
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    const dialogContent = (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
                 aria-hidden="true"
                 onClick={onClose}
@@ -77,4 +78,6 @@ export function DeleteInstansiDialog({ target, onClose }: DeleteInstansiDialogPr
             </div>
         </div>
     );
+
+    return typeof document !== 'undefined' ? createPortal(dialogContent, document.body) : dialogContent;
 }

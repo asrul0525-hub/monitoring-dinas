@@ -4,6 +4,7 @@ import { formatMs } from '@/lib/format';
 import { InstansiRow, KATEGORI_INSTANSI_LABELS, KategoriInstansiKey } from '@/types/monitoring';
 import { useForm } from '@inertiajs/react';
 import { FormEvent, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface InstansiFormModalProps {
     open: boolean;
@@ -65,8 +66,7 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
         return null;
     }
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const submitForm = (keepOpen: boolean) => {
         if (editing) {
             put(`/instansi/${editing.id}`, {
                 preserveScroll: true,
@@ -75,13 +75,33 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
         } else {
             post('/instansi', {
                 preserveScroll: true,
-                onSuccess: () => onClose(),
+                onSuccess: () => {
+                    if (keepOpen) {
+                        clearErrors();
+                        setData({
+                            nama: '',
+                            kategori: data.kategori,
+                            url: '',
+                            feed_url: '',
+                        });
+                        window.setTimeout(() => {
+                            namaInputRef.current?.focus({ preventScroll: true });
+                        }, 20);
+                    } else {
+                        onClose();
+                    }
+                },
             });
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        submitForm(false);
+    };
+
+    const modalContent = (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
                 aria-hidden="true"
                 onClick={onClose}
@@ -229,6 +249,16 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
                         >
                             Batal
                         </button>
+                        {!editing && (
+                            <button
+                                type="button"
+                                disabled={processing}
+                                onClick={() => submitForm(true)}
+                                className="btn-secondary h-9 px-3.5 text-xs"
+                            >
+                                Simpan &amp; Tambah Lagi
+                            </button>
+                        )}
                         <button
                             type="submit"
                             disabled={processing}
@@ -241,4 +271,6 @@ export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalP
             </div>
         </div>
     );
+
+    return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 }
