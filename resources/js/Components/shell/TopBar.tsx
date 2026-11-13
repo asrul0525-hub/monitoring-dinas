@@ -69,6 +69,19 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
     return (
         <header className="glass-shell flex h-[60px] items-center justify-between gap-4 rounded-full px-5">
             <div className="flex items-center gap-3">
+                <Link
+                    href="/"
+                    className="surface-elevated hidden items-center gap-2 rounded-full px-3 py-1.5 transition-colors hover:border-accent sm:inline-flex"
+                    title="RADAR HSU — Diskominfosandi Kab. HSU"
+                >
+                    <span className="status-dot--aktif inline-block h-2 w-2 rounded-full" />
+                    <span className="text-xs font-bold tracking-wide text-ink-primary">
+                        RADAR <span className="text-accent">HSU</span>
+                    </span>
+                </Link>
+
+                <div className="hidden h-5 w-px bg-line-subtle sm:block" aria-hidden="true" />
+
                 <div className="relative">
                     <button
                         type="button"

@@ -24,7 +24,7 @@ class ReportExport implements FromCollection, ShouldAutoSize, WithHeadings, With
 
     public function title(): string
     {
-        return 'Monitoring Diskominfo HSU';
+        return 'RADAR HSU - Monitoring';
     }
 
     /**

@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title inertia>{{ config('app.name', 'Monitoring Website Dinas') }}</title>
+        <title inertia>{{ config('app.name', 'RADAR HSU') }}</title>
+        <link rel="icon" type="image/png" href="/images/logo-hsu.png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

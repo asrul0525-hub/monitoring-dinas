@@ -73,6 +73,8 @@ it('tetap mengembalikan 200 dan menampilkan pesan Tidak ada data saat filter kos
 
     expect($html)
         ->toContain('Tidak ada data')
+        ->toContain('RADAR HSU')
+        ->toContain('Diskominfosandi HSU')
         ->toContain('Pemerintah Kabupaten Hulu Sungai Utara')
         ->toContain('DINAS KOMUNIKASI, INFORMATIKA, DAN PERSANDIAN');
 });

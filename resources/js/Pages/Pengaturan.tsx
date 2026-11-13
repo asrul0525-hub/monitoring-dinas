@@ -139,7 +139,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                             Ganti Kata Sandi Super Admin
                         </h2>
                         <p className="mt-1 text-xs text-ink-secondary">
-                            Perbarui kata sandi akun administrator Diskominfo secara berkala.
+                            Perbarui kata sandi akun administrator Diskominfosandi HSU secara berkala.
                         </p>
 
                         <form onSubmit={submitPassword} className="mt-5 space-y-4">

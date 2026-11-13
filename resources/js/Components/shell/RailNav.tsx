@@ -1,6 +1,4 @@
-import { SharedProps } from '@/types/monitoring';
 import { Link, usePage } from '@inertiajs/react';
-import { deriveUserIdentity } from './TopBar';
 
 interface NavItem {
     label: string;
@@ -71,26 +69,30 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function RailNav() {
-    const page = usePage<SharedProps>();
+    const page = usePage();
     const url = page.url;
-    const { displayName, shortLabel, initials } = deriveUserIdentity(page.props.auth?.user);
 
     return (
         <nav
             aria-label="Navigasi utama"
             className="glass-shell fixed left-5 top-1/2 z-40 flex w-16 -translate-y-1/2 flex-col items-center gap-3 rounded-full py-5"
         >
-            <div
-                title={`${displayName} (${page.props.auth?.user?.email ?? ''})`}
+            <Link
+                href="/"
+                title="RADAR HSU — Diskominfosandi Kab. HSU"
                 className="mb-2 flex flex-col items-center"
             >
-                <div className="surface-elevated flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold text-accent">
-                    {initials}
+                <div className="logo-emblem-tile flex h-10 w-10 items-center justify-center rounded-full p-1.5 transition-transform hover:scale-105">
+                    <img
+                        src="/images/logo-hsu.png"
+                        alt="RADAR HSU"
+                        className="h-full w-full object-contain"
+                    />
                 </div>
-                <span className="mt-1 max-w-[54px] truncate text-center text-[9px] font-semibold tracking-wider text-ink-secondary">
-                    {shortLabel}
+                <span className="mt-1 text-center text-[9px] font-bold tracking-wider text-ink-primary">
+                    RADAR
                 </span>
-            </div>
+            </Link>
 
             {NAV_ITEMS.map((item) => {
                 const active = item.match(url);

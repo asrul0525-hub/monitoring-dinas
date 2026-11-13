@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8">
-    <title>Laporan Monitoring Website Dinas — Diskominfo Kab. Hulu Sungai Utara</title>
+    <title>Laporan RADAR HSU — Diskominfosandi Kab. Hulu Sungai Utara</title>
     <style>
         @page {
             size: A4 landscape;
@@ -32,8 +32,13 @@
             vertical-align: middle;
         }
         .emblem-box {
-            width: 54px;
+            width: 56px;
             padding-right: 12px;
+        }
+        .emblem-img {
+            width: 44px;
+            height: auto;
+            display: block;
         }
         .emblem-badge {
             width: 46px;
@@ -277,20 +282,30 @@
         };
     @endphp
 
-    <!-- Kop Laporan Resmi Diskominfo HSU (Amuntai) -->
+    <!-- Kop Laporan Resmi Diskominfosandi Kab. HSU (Amuntai) -->
+    @php
+        $hsuLogoPath = public_path('images/logo-hsu.png');
+        $hsuLogoBase64 = file_exists($hsuLogoPath)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($hsuLogoPath))
+            : null;
+    @endphp
     <div class="header-card">
         <table class="header-layout">
             <tr>
                 <td class="emblem-box">
-                    <div class="emblem-badge">HSU</div>
+                    @if ($hsuLogoBase64)
+                        <img src="{{ $hsuLogoBase64 }}" alt="Logo Kabupaten Hulu Sungai Utara" class="emblem-img">
+                    @else
+                        <div class="emblem-badge">HSU</div>
+                    @endif
                 </td>
                 <td>
-                    <p class="gov-kicker">Pemerintah Kabupaten Hulu Sungai Utara</p>
+                    <p class="gov-kicker">Pemerintah Kabupaten Hulu Sungai Utara · Diskominfosandi HSU</p>
                     <p class="gov-agency">DINAS KOMUNIKASI, INFORMATIKA, DAN PERSANDIAN</p>
-                    <p class="gov-sub">Pusat Observasi &amp; Monitoring Website Layanan Publik Daerah · Amuntai, Kalimantan Selatan</p>
+                    <p class="gov-sub">RADAR HSU · Sistem Pemantauan Website Layanan Publik Daerah · Amuntai, Kalimantan Selatan</p>
                 </td>
                 <td class="doc-badge-cell">
-                    <span class="doc-title-pill">Laporan Eksekutif Monitoring</span>
+                    <span class="doc-title-pill">Laporan Eksekutif · RADAR HSU</span>
                     <div class="doc-meta-right">Dicetak: {{ $printedAt }}</div>
                 </td>
             </tr>
@@ -409,7 +424,7 @@
                 <div class="signature-title">Dinas Komunikasi, Informatika, dan Persandian</div>
                 <div>Kabupaten Hulu Sungai Utara</div>
                 <div class="signature-space"></div>
-                <div class="signature-line">Administrator Sistem Monitoring Website</div>
+                <div class="signature-line">Administrator Sistem RADAR HSU</div>
             </td>
         </tr>
     </table>

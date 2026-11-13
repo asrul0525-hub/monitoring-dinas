@@ -343,3 +343,59 @@ select:focus-visible {
 .animate-modal-pop {
     animation: modalPopIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* RADAR HSU Login Command Center visuals */
+.radar-grid-backdrop {
+    background-image:
+        linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+    background-size: 36px 36px;
+}
+
+.logo-emblem-tile {
+    background: rgba(248, 250, 252, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 14px rgba(5, 7, 13, 0.28);
+}
+
+:root.light .logo-emblem-tile {
+    background: #FFFFFF;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+}
+
+@keyframes radarSweep {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.radar-sweep-cone {
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        transparent 255deg,
+        var(--accent-soft) 325deg,
+        var(--accent-glow) 360deg
+    );
+    animation: radarSweep 6s linear infinite;
+}
+
+@keyframes radarPing {
+    0% {
+        transform: scale(0.85);
+        opacity: 0.7;
+    }
+    80%,
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+.radar-ping-ring {
+    animation: radarPing 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

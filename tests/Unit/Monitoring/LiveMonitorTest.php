@@ -174,7 +174,7 @@ it('LiveMonitor tidak menandai Tidak Aktif saat server merespons HTTP 403 WAF Ch
     $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
 
     Http::fake([
-        'https://www.pa-amuntai.go.id' => Http::response(
+        'https://waf-challenge.hsu.test' => Http::response(
             '<!DOCTYPE html><html><head><title>Checking your browser before accessing. Just a moment...</title></head><body><script src="/hcdn-cgi/jschallenge"></script></body></html>',
             403,
             ['Server' => 'hcdn']
@@ -183,7 +183,7 @@ it('LiveMonitor tidak menandai Tidak Aktif saat server merespons HTTP 403 WAF Ch
 
     $instansi = Instansi::factory()->create([
         'nama' => 'Pengadilan Agama HSU',
-        'url' => 'https://www.pa-amuntai.go.id',
+        'url' => 'https://waf-challenge.hsu.test',
         'status' => Status::TidakAktif,
         'last_content_at' => null,
         'down_since' => $now->subHour(),
