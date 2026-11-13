@@ -82,7 +82,7 @@ export function RailNav() {
                 title="RADAR HSU — Diskominfosandi Kab. HSU"
                 className="mb-2 flex flex-col items-center"
             >
-                <div className="logo-emblem-tile flex h-11 w-11 items-center justify-center rounded-full p-1.5 transition-transform hover:scale-105">
+                <div className="logo-emblem-tile flex h-12 w-12 items-center justify-center rounded-full p-1 transition-transform hover:scale-105">
                     <img
                         src="/images/logo-hsu.png"
                         alt="RADAR HSU"
