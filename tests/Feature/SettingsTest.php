@@ -56,6 +56,28 @@ it('mengubah freshness_days ke 7 dan menghitung ulang status instansi berkonten 
     expect($instansi->fresh()->status)->toBe(Status::KurangAktif);
 });
 
+it('mengubah check_interval_hours dari pengaturan dan menolak interval di luar pilihan valid', function () {
+    $user = User::factory()->create();
+    Setting::put('freshness_days', 30);
+    Setting::put('check_interval_hours', 6);
+
+    $this->actingAs($user)
+        ->put('/pengaturan/monitor', [
+            'freshness_days' => 30,
+            'check_interval_hours' => 3,
+        ])
+        ->assertRedirect();
+
+    expect((int) Setting::get('check_interval_hours'))->toBe(3);
+
+    $this->actingAs($user)
+        ->put('/pengaturan/monitor', [
+            'freshness_days' => 30,
+            'check_interval_hours' => 5,
+        ])
+        ->assertSessionHasErrors('check_interval_hours');
+});
+
 it('menolak nilai freshness_days di luar rentang 1 sampai 365 (0 dan 400)', function () {
     $user = User::factory()->create();
 

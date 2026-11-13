@@ -50,6 +50,7 @@ export type SharedProps = PageProps<{
         lastCheckAt: string | null;
         nextCheckAt: string | null;
         intervalHours: number;
+        schedulerActive?: boolean;
     };
     alerts: {
         count: number;

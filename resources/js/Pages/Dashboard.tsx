@@ -230,8 +230,34 @@ export default function Dashboard({
 
                 {/* Small card: Ringkasan Jadwal */}
                 <section className="surface-card col-span-3 p-6">
-                    <h2 className="text-base font-semibold text-ink-primary">Jadwal Pengecekan</h2>
-                    <p className="mt-0.5 text-xs text-ink-secondary">Siklus pemantauan otomatis</p>
+                    <div className="flex items-start justify-between gap-2">
+                        <div>
+                            <h2 className="text-base font-semibold text-ink-primary">Jadwal Pengecekan</h2>
+                            <p className="mt-0.5 text-xs text-ink-secondary">Siklus pemantauan otomatis</p>
+                        </div>
+                        <Link
+                            href="/pengaturan"
+                            title={
+                                schedule.schedulerActive
+                                    ? 'Mesin scheduler cron aktif berjalan otomatis'
+                                    : 'Mesin scheduler cron belum terdeteksi aktif'
+                            }
+                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-opacity hover:opacity-90 ${
+                                schedule.schedulerActive
+                                    ? 'status-badge--aktif'
+                                    : 'status-badge--kurang'
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-1.5 w-1.5 rounded-full ${
+                                    schedule.schedulerActive
+                                        ? 'status-dot--aktif'
+                                        : 'status-dot--kurang'
+                                }`}
+                            />
+                            <span>{schedule.schedulerActive ? 'Cron Aktif' : 'Cron Off'}</span>
+                        </Link>
+                    </div>
 
                     <div className="mt-4 grid grid-cols-2 gap-3">
                         <div className="surface-elevated rounded-xl p-3">

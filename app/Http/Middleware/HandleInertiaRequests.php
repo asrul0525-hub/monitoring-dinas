@@ -4,9 +4,9 @@ namespace App\Http\Middleware;
 
 use App\Enums\Status;
 use App\Models\Instansi;
-use App\Models\Setting;
 use App\Monitoring\FakeMonitor;
 use App\Monitoring\Monitor;
+use App\Monitoring\MonitoringSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
@@ -46,8 +46,9 @@ class HandleInertiaRequests extends Middleware
         ];
 
         $lastCheckAt = null;
-        $nextCheckAt = null;
-        $intervalHours = 6;
+        $intervalHours = MonitoringSchedule::configuredIntervalHours();
+        $nextCheckAt = MonitoringSchedule::nextRunAt($intervalHours)->toIso8601String();
+        $schedulerActive = MonitoringSchedule::isSchedulerActive();
         $alertItems = [];
 
         if ($hasTable) {
@@ -63,12 +64,9 @@ class HandleInertiaRequests extends Middleware
                 'menunggu' => (int) ($grouped[''] ?? $grouped[null] ?? Instansi::whereNull('status')->count()),
             ];
 
-            $intervalHours = (int) (Schema::hasTable('settings') ? Setting::get('check_interval_hours', 6) : 6);
             $latestChecked = Instansi::query()->max('last_checked_at');
             if ($latestChecked) {
-                $lastCarbon = \Carbon\CarbonImmutable::parse($latestChecked);
-                $lastCheckAt = $lastCarbon->toIso8601String();
-                $nextCheckAt = $lastCarbon->addHours($intervalHours)->toIso8601String();
+                $lastCheckAt = \Carbon\CarbonImmutable::parse($latestChecked)->toIso8601String();
             }
 
             if ($user) {
@@ -108,6 +106,7 @@ class HandleInertiaRequests extends Middleware
                 'lastCheckAt' => $lastCheckAt,
                 'nextCheckAt' => $nextCheckAt,
                 'intervalHours' => $intervalHours,
+                'schedulerActive' => $schedulerActive,
             ],
             'alerts' => [
                 'count' => count($alertItems),

@@ -72,7 +72,7 @@ export function AppShell({
                     {actions && <div className="flex items-center gap-3">{actions}</div>}
                 </div>
 
-                <main className="animate-page-enter">
+                <main className="animate-page-enter relative z-10">
                     {loadingPath !== null ? <AdaptivePageSkeleton path={loadingPath} /> : children}
                 </main>
             </div>

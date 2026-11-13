@@ -1,5 +1,6 @@
 import { AppShell } from '@/Components/shell/AppShell';
 import { ThemeToggle } from '@/Components/shell/ThemeToggle';
+import { formatDateTimeId, formatRelativeId } from '@/lib/format';
 import { SharedProps } from '@/types/monitoring';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -8,13 +9,43 @@ interface PengaturanProps extends SharedProps {
     settings: {
         freshnessDays: number;
         checkIntervalHours: number;
+        schedulerActive?: boolean;
+        lastHeartbeatAt?: string | null;
     };
 }
+
+const INTERVAL_OPTIONS = [
+    {
+        value: 1,
+        label: 'Setiap 1 jam (Pemantauan Ketat)',
+        hint: 'Berjalan tiap jam pada menit :00 WITA (24 kali sehari).',
+    },
+    {
+        value: 3,
+        label: 'Setiap 3 jam (Pemantauan Responsif)',
+        hint: 'Berjalan pada pukul 02:00, 05:00, 08:00, 11:00, 14:00, 17:00, 20:00, dan 23:00 WITA.',
+    },
+    {
+        value: 6,
+        label: 'Setiap 6 jam (Direkomendasikan)',
+        hint: 'Berjalan pada pukul 02:00, 08:00, 14:00, dan 20:00 WITA.',
+    },
+    {
+        value: 12,
+        label: 'Setiap 12 jam (Hemat Beban Server)',
+        hint: 'Berjalan pada pukul 08:00 dan 20:00 WITA.',
+    },
+];
 
 export default function Pengaturan({ settings }: PengaturanProps) {
     const monitorForm = useForm({
         freshness_days: settings.freshnessDays,
+        check_interval_hours: settings.checkIntervalHours,
     });
+
+    const selectedIntervalMeta =
+        INTERVAL_OPTIONS.find((opt) => opt.value === monitorForm.data.check_interval_hours) ??
+        INTERVAL_OPTIONS[2];
 
     const passwordForm = useForm({
         current_password: '',
@@ -88,18 +119,66 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                 )}
                             </div>
 
+                            <div>
+                                <label
+                                    htmlFor="check_interval_hours"
+                                    className="block text-xs font-medium text-ink-secondary"
+                                >
+                                    Interval Jadwal Pengecekan Otomatis (Cron WITA)
+                                </label>
+                                <select
+                                    id="check_interval_hours"
+                                    value={monitorForm.data.check_interval_hours}
+                                    onChange={(e) =>
+                                        monitorForm.setData(
+                                            'check_interval_hours',
+                                            Number(e.target.value),
+                                        )
+                                    }
+                                    className="input-control mt-1.5 block h-10 w-full px-3 text-xs"
+                                >
+                                    {INTERVAL_OPTIONS.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="mt-1.5 text-[11px] text-ink-secondary">
+                                    {selectedIntervalMeta.hint}
+                                </p>
+                                {monitorForm.errors.check_interval_hours && (
+                                    <p className="mt-1.5 text-xs text-status-tidak">
+                                        {monitorForm.errors.check_interval_hours}
+                                    </p>
+                                )}
+                            </div>
+
                             <div className="surface-elevated rounded-xl p-3.5">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-medium text-ink-secondary">
-                                        Interval Jadwal Pengecekan Otomatis (Cron)
+                                        Status Mesin Scheduler Otomatis
                                     </span>
-                                    <span className="surface-card rounded px-2 py-0.5 font-mono text-xs font-semibold text-ink-primary">
-                                        Setiap {settings.checkIntervalHours} jam
+                                    <span
+                                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                                            settings.schedulerActive
+                                                ? 'status-badge--aktif'
+                                                : 'status-badge--kurang'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`inline-block h-1.5 w-1.5 rounded-full ${
+                                                settings.schedulerActive
+                                                    ? 'status-dot--aktif'
+                                                    : 'status-dot--kurang'
+                                            }`}
+                                        />
+                                        {settings.schedulerActive ? 'Aktif Otomatis' : 'Belum Terdeteksi'}
                                     </span>
                                 </div>
-                                <p className="mt-1 text-[11px] text-ink-secondary">
-                                    Ditampilkan hanya-baca pada fase ini. Pengecekan berjalan pada
-                                    pukul 02:00, 08:00, 14:00, dan 20:00 WITA.
+                                <p className="mt-1.5 text-[11px] text-ink-secondary">
+                                    {settings.lastHeartbeatAt
+                                        ? `Detak terakhir scheduler: ${formatDateTimeId(settings.lastHeartbeatAt)} (${formatRelativeId(settings.lastHeartbeatAt)}).`
+                                        : 'Belum ada detak dari scheduler latar belakang. Pastikan Windows Task Scheduler atau cron server aktif memicu schedule:run.'}
                                 </p>
                             </div>
 

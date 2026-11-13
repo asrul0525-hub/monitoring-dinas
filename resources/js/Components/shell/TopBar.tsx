@@ -1,6 +1,6 @@
 import { SharedProps } from '@/types/monitoring';
 import { Link, router, usePage } from '@inertiajs/react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { AlertBell } from './AlertBell';
 import { RealtimeClockWita } from './RealtimeClockWita';
 import { ThemeToggle } from './ThemeToggle';
@@ -44,6 +44,25 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
     const [q, setQ] = useState(initialQuery);
     const [checkingAll, setCheckingAll] = useState(false);
     const [accountOpen, setAccountOpen] = useState(false);
+    const accountRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!accountOpen) return;
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setAccountOpen(false);
+        };
+        const onClickOutside = (e: MouseEvent) => {
+            if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+                setAccountOpen(false);
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('mousedown', onClickOutside);
+        return () => {
+            window.removeEventListener('keydown', onKeyDown);
+            window.removeEventListener('mousedown', onClickOutside);
+        };
+    }, [accountOpen]);
 
     const handleSearch = (e: FormEvent) => {
         e.preventDefault();
@@ -67,7 +86,7 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
     const { displayName, initials } = deriveUserIdentity(auth.user);
 
     return (
-        <header className="glass-shell flex h-[60px] items-center justify-between gap-4 rounded-full px-5">
+        <header className="glass-shell relative z-50 flex h-[60px] items-center justify-between gap-4 rounded-full px-5">
             <div className="flex items-center gap-3">
                 <Link
                     href="/"
@@ -82,7 +101,7 @@ export function TopBar({ initialQuery = '' }: TopBarProps) {
 
                 <div className="hidden h-5 w-px bg-line-subtle sm:block" aria-hidden="true" />
 
-                <div className="relative">
+                <div ref={accountRef} className="relative">
                     <button
                         type="button"
                         onClick={() => setAccountOpen((v) => !v)}
