@@ -38,17 +38,17 @@ export default function Login({ status }: { status?: string }) {
 
             {/* Top Utility Bar: Dual Co-Branding Header (Kiri) + Status & Theme Toggle (Kanan) */}
             <header className="animate-page-enter relative z-10 mx-auto flex w-full max-w-[1320px] items-center justify-between">
-                <div className="flex items-center gap-3.5">
-                    <div className="flex items-center gap-2.5">
-                        <div className="logo-emblem-tile flex h-12 w-12 items-center justify-center rounded-xl p-1.5">
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="logo-emblem-tile flex h-14 w-14 items-center justify-center rounded-2xl p-1.5">
                             <img
                                 src="/images/logo-hsu.png"
                                 alt="Logo Kabupaten Hulu Sungai Utara"
                                 className="h-full w-full object-contain"
                             />
                         </div>
-                        <div className="h-7 w-px bg-line-subtle" aria-hidden="true" />
-                        <div className="logo-emblem-tile flex h-12 w-12 items-center justify-center rounded-xl p-1.5">
+                        <div className="h-9 w-px bg-line-subtle" aria-hidden="true" />
+                        <div className="logo-emblem-tile flex h-14 w-14 items-center justify-center rounded-2xl p-2">
                             <img
                                 src="/images/logo-diskominfo.png"
                                 alt="Logo Diskominfo"
@@ -57,14 +57,9 @@ export default function Login({ status }: { status?: string }) {
                         </div>
                     </div>
 
-                    <div className="pl-1">
-                        <p className="text-sm font-bold tracking-wide text-ink-primary">
-                            DISKOMINFOSANDI HSU
-                        </p>
-                        <p className="text-xs text-ink-secondary">
-                            Kabupaten Hulu Sungai Utara
-                        </p>
-                    </div>
+                    <p className="pl-1 text-base font-extrabold tracking-wide text-ink-primary sm:text-lg">
+                        DISKOMINFOSANDI HSU
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -331,7 +326,7 @@ export default function Login({ status }: { status?: string }) {
 
             {/* Footer Resmi */}
             <footer className="relative z-10 mx-auto flex w-full max-w-[1320px] items-center justify-between border-t border-line-subtle pt-4 text-xs text-ink-secondary">
-                <span>© 2026 Diskominfosandi Kab. HSU</span>
+                <span>© 2026 Diskominfosandi Kab. Hulu Sungai Utara</span>
                 <span>Pusat Monitoring Website Pemerintah Daerah · Amuntai</span>
             </footer>
         </div>

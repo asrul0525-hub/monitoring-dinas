@@ -5,7 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <title inertia>{{ config('app.name', 'RADAR HSU') }}</title>
-        <link rel="icon" type="image/png" href="/images/logo-hsu.png">
+        <link rel="icon" type="image/png" sizes="128x128" href="/images/favicon-hsu.png">
+        <link rel="shortcut icon" href="/favicon.ico">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
