@@ -55,12 +55,14 @@ class RecalculateStatuses
                 }
             }
 
+            $isTolerated = StatusCalculator::isToleratedTransientError($latest->error);
+
             $instansi->update([
                 'status' => $newStatus,
                 'last_checked_at' => $latest->checked_at,
                 'last_content_at' => ! $isOnline && $latest->http_code === 200 ? null : ($latest->content_date ?? $instansi->last_content_at),
-                'last_response_ms' => $latest->response_ms,
-                'last_http_code' => $latest->http_code,
+                'last_response_ms' => $latest->response_ms ?? ($isTolerated ? $instansi->last_response_ms : null),
+                'last_http_code' => $isTolerated ? 200 : $latest->http_code,
                 'content_source' => ! $isOnline && $latest->http_code === 200 ? null : ($latest->content_source ?? $instansi->content_source),
                 'down_since' => $downSince,
             ]);

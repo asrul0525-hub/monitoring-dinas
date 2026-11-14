@@ -35,13 +35,26 @@ class LiveMonitor implements Monitor
         524, // Cloudflare A Timeout Occurred
     ];
 
+    private const SOFT_RATE_LIMIT_HTTP_CODES = [
+        408, // Request Timeout
+        429, // Too Many Requests
+        502, // Bad Gateway
+        503, // Service Unavailable (LVE / Entry Process limit)
+        504, // Gateway Timeout
+        520, // Cloudflare Unknown Error
+        521, // Cloudflare Web Server Is Down
+        522, // Cloudflare Connection Timed Out
+        523, // Cloudflare Origin Is Unreachable
+        524, // Cloudflare A Timeout Occurred
+    ];
+
     public function check(Instansi $instansi, ?CarbonInterface $at = null): Check
     {
         $checkedAt = ($at ? CarbonImmutable::instance($at) : CarbonImmutable::now())
             ->setTimezone(config('app.timezone', 'UTC'));
 
         $startMs = (int) round(hrtime(true) / 1_000_000);
-        $attempt = $this->performSingleFetch($instansi);
+        $attempt = $this->performSingleFetch($instansi, null, $checkedAt);
         $elapsedMs = (int) round(hrtime(true) / 1_000_000) - $startMs;
 
         // Hanya lakukan retry pada klik satuan jika gagal karena kode HTTP transien (misal 503/502)
@@ -50,9 +63,9 @@ class LiveMonitor implements Monitor
             && ($attempt['http_code'] !== null || $elapsedMs < 4000);
 
         if ($shouldRetrySingle) {
-            self::waitBeforeRetry();
-            $retryTimeout = max(10, (int) config('monitoring.timeout', 10));
-            $retry = $this->performSingleFetch($instansi, $retryTimeout);
+            self::waitBeforeRetry(600);
+            $retryTimeout = max(14, (int) config('monitoring.timeout', 14));
+            $retry = $this->performSingleFetch($instansi, $retryTimeout, $checkedAt, forceSkipFeed: true);
 
             if ($retry['http_code'] === 200 || $retry['http_code'] === 403 || $attempt['http_code'] === null) {
                 $attempt = $retry;
@@ -72,7 +85,28 @@ class LiveMonitor implements Monitor
     }
 
     /**
-     * Ambil halaman utama dan (bila sudah tersimpan) feed_url secara paralel agar waktu tunggu terpangkas separuhnya.
+     * Tentukan apakah feed_url perlu diunduh ulang pada pengecekan ini.
+     * Jika tanggal konten sudah tercatat dan instansi baru saja dicek (< 6 jam terakhir),
+     * kita cukup mengecek halaman utama saja (1 request) agar tidak membebani server WordPress bersama.
+     */
+    public static function shouldRefreshContentFeed(Instansi $instansi, ?CarbonInterface $at = null): bool
+    {
+        if ($instansi->last_content_at === null || $instansi->last_checked_at === null) {
+            return true;
+        }
+
+        if ($instansi->status === Status::TidakAktif) {
+            return true;
+        }
+
+        $now = $at ? CarbonImmutable::instance($at) : CarbonImmutable::now();
+        $cacheHours = max(1, (int) config('monitoring.feed_cache_hours', 6));
+
+        return abs($now->diffInHours($instansi->last_checked_at)) >= $cacheHours;
+    }
+
+    /**
+     * Ambil halaman utama dan (bila sudah tersimpan & perlu disegarkan) feed_url secara paralel.
      *
      * @return array{
      *     http_code: ?int,
@@ -83,8 +117,12 @@ class LiveMonitor implements Monitor
      *     error: ?string
      * }
      */
-    public function performSingleFetch(Instansi $instansi, ?int $timeoutSeconds = null): array
-    {
+    public function performSingleFetch(
+        Instansi $instansi,
+        ?int $timeoutSeconds = null,
+        ?CarbonInterface $at = null,
+        bool $forceSkipFeed = false
+    ): array {
         $startNs = hrtime(true);
 
         $httpCode = null;
@@ -94,16 +132,20 @@ class LiveMonitor implements Monitor
         $feedBody = null;
         $error = null;
 
-        $timeout = $timeoutSeconds ?? (int) config('monitoring.timeout', 10);
-        $connectTimeout = (int) config('monitoring.connect_timeout', 5);
+        $timeout = $timeoutSeconds ?? (int) config('monitoring.timeout', 14);
+        $connectTimeout = (int) config('monitoring.connect_timeout', 6);
         $verifySsl = (bool) config('monitoring.verify_ssl', false);
         $userAgent = (string) config(
             'monitoring.user_agent',
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
         );
 
+        $shouldFetchFeed = $instansi->feed_url !== null
+            && ! $forceSkipFeed
+            && self::shouldRefreshContentFeed($instansi, $at);
+
         try {
-            if ($instansi->feed_url) {
+            if ($shouldFetchFeed) {
                 $responses = Http::pool(function (Pool $pool) use ($instansi, $timeout, $connectTimeout, $verifySsl, $userAgent) {
                     $mainReq = $pool->as('main')
                         ->timeout($timeout)
@@ -197,6 +239,19 @@ class LiveMonitor implements Monitor
         return true;
     }
 
+    public static function isSoftTransientFailure(?int $httpCode, ?string $error): bool
+    {
+        if ($httpCode !== null) {
+            return in_array($httpCode, self::SOFT_RATE_LIMIT_HTTP_CODES, true);
+        }
+
+        if ($error !== null && (str_contains($error, 'DNS gagal') || str_contains($error, 'SSL'))) {
+            return false;
+        }
+
+        return true;
+    }
+
     public static function waitBeforeRetry(?int $overrideDelayMs = null): void
     {
         if (app()->runningUnitTests()) {
@@ -246,16 +301,19 @@ class LiveMonitor implements Monitor
                     $headers
                 );
 
-                // Jika HTML halaman utama mengumumkan URL RSS/Atom baru di <head> yang berbeda dari feed_url lama,
-                // atau jika belum ada tanggal yang ditemukan, jalankan auto-discovery dan perbarui feed_url otomatis.
                 $discoveredInHtml = ($htmlBody !== null && trim($htmlBody) !== '')
                     ? HtmlMetaParser::discoverFeedUrls($htmlBody, $instansi->url)
                     : [];
                 $hasNewerFeedUrlInHtml = $discoveredInHtml !== []
                     && $instansi->feed_url !== null
                     && ! in_array($instansi->feed_url, $discoveredInHtml, true);
+                $needsFeedRefresh = self::shouldRefreshContentFeed($instansi, $checkedAt);
 
-                if (($detected['date'] === null || $hasNewerFeedUrlInHtml) && $htmlBody !== null && trim($htmlBody) !== '') {
+                if (
+                    (($detected['date'] === null && $needsFeedRefresh) || $hasNewerFeedUrlInHtml)
+                    && $htmlBody !== null
+                    && trim($htmlBody) !== ''
+                ) {
                     $fallback = $this->attemptMultiLayerFallback($instansi, $htmlBody, $discoveredInHtml);
                     if ($fallback['date'] !== null) {
                         $detected = $fallback;
@@ -267,14 +325,47 @@ class LiveMonitor implements Monitor
 
                 if ($detected['date'] !== null) {
                     $contentDate = $detected['date']->setTimezone(config('app.timezone', 'UTC'));
+                    $source = $detected['source'];
+                } elseif ($instansi->content_source === null) {
+                    $source = $detected['source'];
                 }
-                $source = $detected['source'];
+            }
+        }
+
+        // Opsi B (2-Strike Rule): Toleransi 1x gangguan transien sesaat (503/502/504/429/Timeout)
+        // pada website yang pada pengecekan terakhir terbukti sehat (HTTP 200 OK).
+        $isToleratedFirstStrike = false;
+        if (
+            $httpCode !== 200
+            && $httpCode !== 403
+            && $blacklistReason === null
+            && self::isSoftTransientFailure($httpCode, $error)
+        ) {
+            $previousCheck = Check::where('instansi_id', $instansi->id)
+                ->orderByDesc('id')
+                ->first();
+
+            if (
+                $previousCheck !== null
+                && $previousCheck->http_code === 200
+                && $previousCheck->status !== Status::TidakAktif
+                && ! StatusCalculator::isToleratedTransientError($previousCheck->error)
+            ) {
+                $isToleratedFirstStrike = true;
+                $rawReason = $error ?? 'Gangguan jaringan sesaat';
+                $error = StatusCalculator::TOLERATED_TRANSIENT_PREFIX." ({$rawReason})";
             }
         }
 
         $status = $blacklistReason !== null
             ? Status::TidakAktif
-            : StatusCalculator::classify($httpCode, $contentDate, $checkedAt, $freshnessDays, $blacklistReason);
+            : StatusCalculator::classify(
+                $httpCode,
+                $contentDate,
+                $checkedAt,
+                $freshnessDays,
+                $blacklistReason ?? ($isToleratedFirstStrike ? $error : null)
+            );
 
         $check = Check::create([
             'instansi_id' => $instansi->id,
@@ -282,7 +373,7 @@ class LiveMonitor implements Monitor
             'http_code' => $httpCode,
             'response_ms' => $responseMs,
             'content_date' => $contentDate,
-            'content_source' => ($httpCode === 200 && $blacklistReason === null) ? $source : null,
+            'content_source' => (($httpCode === 200 || $isToleratedFirstStrike) && $blacklistReason === null) ? $source : null,
             'status' => $status,
             'error' => $error,
         ]);
@@ -296,9 +387,9 @@ class LiveMonitor implements Monitor
             'feed_url' => $resolvedFeedUrl,
             'last_checked_at' => $checkedAt,
             'last_content_at' => $blacklistReason !== null ? null : ($contentDate ?? $instansi->last_content_at),
-            'last_response_ms' => $responseMs,
-            'last_http_code' => $httpCode,
-            'content_source' => $blacklistReason !== null ? null : ($httpCode === 200 ? $source : $instansi->content_source),
+            'last_response_ms' => $responseMs ?? ($isToleratedFirstStrike ? $instansi->last_response_ms : null),
+            'last_http_code' => $isToleratedFirstStrike ? 200 : $httpCode,
+            'content_source' => $blacklistReason !== null ? null : (($httpCode === 200 || $isToleratedFirstStrike) ? $source : $instansi->content_source),
             'down_since' => $downSince,
         ]);
 

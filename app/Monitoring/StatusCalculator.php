@@ -7,8 +7,19 @@ use Carbon\CarbonInterface;
 
 class StatusCalculator
 {
+    public const TOLERATED_TRANSIENT_PREFIX = 'Toleransi 1x gangguan sesaat';
+
+    public static function isToleratedTransientError(?string $error): bool
+    {
+        return $error !== null && str_starts_with($error, self::TOLERATED_TRANSIENT_PREFIX);
+    }
+
     public static function isCheckOnline(?int $httpCode, ?string $error = null): bool
     {
+        if (self::isToleratedTransientError($error)) {
+            return true;
+        }
+
         if ($httpCode === 200) {
             return $error === null;
         }

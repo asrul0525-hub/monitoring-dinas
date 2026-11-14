@@ -118,7 +118,7 @@ class NextJsActionExtractor
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => $timeout,
-                CURLOPT_CONNECTTIMEOUT => 4,
+                CURLOPT_CONNECTTIMEOUT => min(6, max(4, $timeout)),
                 CURLOPT_SSL_VERIFYPEER => $verifySsl,
                 CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
                 CURLOPT_FOLLOWLOCATION => true,

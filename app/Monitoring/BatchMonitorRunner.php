@@ -46,7 +46,7 @@ class BatchMonitorRunner
             return $count;
         }
 
-        $concurrency = max(1, (int) config('monitoring.concurrency', 6));
+        $concurrency = max(1, (int) config('monitoring.concurrency', 4));
         $allInstansis = Instansi::query()->orderBy('id')->get();
         if ($allInstansis->isEmpty()) {
             return 0;
@@ -136,8 +136,8 @@ class BatchMonitorRunner
         ?CarbonInterface $at = null,
         ?Closure $onProgress = null
     ): void {
-        $timeout = (int) config('monitoring.timeout', 16);
-        $connectTimeout = (int) config('monitoring.connect_timeout', 8);
+        $timeout = (int) config('monitoring.timeout', 14);
+        $connectTimeout = (int) config('monitoring.connect_timeout', 6);
         $verifySsl = (bool) config('monitoring.verify_ssl', false);
         $userAgent = (string) config(
             'monitoring.user_agent',
@@ -146,7 +146,7 @@ class BatchMonitorRunner
 
         $startTimes = [];
 
-        $responses = Http::pool(function (Pool $pool) use ($chunk, $timeout, $connectTimeout, $verifySsl, $userAgent, &$startTimes) {
+        $responses = Http::pool(function (Pool $pool) use ($chunk, $timeout, $connectTimeout, $verifySsl, $userAgent, $at, &$startTimes) {
             foreach ($chunk as $instansi) {
                 $id = $instansi->id;
                 $startTimes[$id] = hrtime(true);
@@ -163,7 +163,8 @@ class BatchMonitorRunner
 
                 $req->get($instansi->url);
 
-                if ($instansi->feed_url) {
+                // Hanya unduh feed_url secara paralel jika konten perlu disegarkan (Smart Feed Caching)
+                if ($instansi->feed_url && LiveMonitor::shouldRefreshContentFeed($instansi, $at)) {
                     $feedReq = $pool->as("feed_{$id}")
                         ->timeout(min(6, $timeout))
                         ->connectTimeout($connectTimeout)
@@ -274,20 +275,37 @@ class BatchMonitorRunner
         ?CarbonInterface $at = null,
         ?Closure $onProgress = null
     ): void {
-        $retryTimeout = max(12, (int) config('monitoring.timeout', 10));
+        $retryTimeout = max(15, (int) config('monitoring.timeout', 14));
 
         foreach ($deferredRetries as $item) {
             /** @var Instansi $instansi */
             $instansi = $item['instansi'];
             $initial = $item['attempt'];
 
-            LiveMonitor::waitBeforeRetry();
-            $verified = $liveMonitor->performSingleFetch($instansi, $retryTimeout);
+            LiveMonitor::waitBeforeRetry(1500);
+            $verified = $liveMonitor->performSingleFetch($instansi, $retryTimeout, $at, forceSkipFeed: true);
 
-            // Jika percobaan verifikasi pertama masih terkena 503 rate-limit, beri jeda sedikit lebih panjang untuk konfirmasi akhir
-            if ($verified['http_code'] === 503) {
-                LiveMonitor::waitBeforeRetry(800);
-                $verified = $liveMonitor->performSingleFetch($instansi, $retryTimeout);
+            // Jika percobaan verifikasi pertama masih terkena 503 atau Timeout,
+            // gunakan fallback koneksi cURL mandiri yang bersih dengan batas 15 detik
+            if (
+                $verified['http_code'] !== 200
+                && ! app()->runningUnitTests()
+                && LiveMonitor::isSoftTransientFailure($verified['http_code'], $verified['error'])
+            ) {
+                LiveMonitor::waitBeforeRetry(1500);
+                $curlStartNs = hrtime(true);
+                $cleanHtml = \App\Monitoring\Parsers\NextJsActionExtractor::fetchCleanHtml($instansi->url, timeout: 15);
+                if ($cleanHtml !== null) {
+                    $elapsedMs = max(1, (int) round((hrtime(true) - $curlStartNs) / 1_000_000));
+                    $verified = [
+                        'http_code' => 200,
+                        'response_ms' => $elapsedMs,
+                        'html_body' => $cleanHtml,
+                        'headers' => [],
+                        'feed_body' => null,
+                        'error' => null,
+                    ];
+                }
             }
 
             $final = ($verified['http_code'] !== null || $initial['http_code'] === null)

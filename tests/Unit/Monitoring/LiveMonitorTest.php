@@ -234,4 +234,59 @@ it('LiveMonitor tidak menandai Tidak Aktif saat server merespons HTTP 403 WAF Ch
         ->and($instansi->down_since)->toBeNull();
 });
 
+it('LiveMonitor menerapkan Opsi B (2-Strike Rule): toleransi 1x gagal 503 atau Timeout pada website sehat, dan baru Tidak Aktif jika gagal 2x berturut-turut', function () {
+    Setting::put('freshness_days', 30);
+    $t0 = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+    $t1 = $t0->addMinutes(5);
+    $t2 = $t0->addMinutes(10);
+
+    Http::fake([
+        'https://pkm-danaupanggang.hsu.go.id' => Http::sequence()
+            // Siklus 1: Normal 200 OK
+            ->push('<html><head><meta property="article:published_time" content="2026-11-05T08:00:00+08:00"></head></html>', 200)
+            // Siklus 2 (Strike 1): Gagal 503 (termasuk saat retry)
+            ->push('Service Unavailable', 503)
+            ->push('Service Unavailable', 503)
+            // Siklus 3 (Strike 2): Gagal 503 lagi untuk ke-2 kalinya berturut-turut
+            ->push('Service Unavailable', 503)
+            ->push('Service Unavailable', 503),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'PKM Danau Panggang',
+        'url' => 'https://pkm-danaupanggang.hsu.go.id',
+        'feed_url' => null,
+        'status' => null,
+        'last_checked_at' => null,
+        'last_content_at' => null,
+    ]);
+
+    $monitor = app(LiveMonitor::class);
+
+    // 1. Cek pertama berhasil 200 OK -> Aktif
+    $check1 = $monitor->check($instansi, $t0);
+    $instansi->refresh();
+    expect($check1->status)->toBe(Status::Aktif)
+        ->and($instansi->status)->toBe(Status::Aktif)
+        ->and($instansi->last_http_code)->toBe(200);
+
+    // 2. Strike 1 (503 sesaat): Ditoleransi, status tetap Aktif dan last_http_code tetap 200
+    $check2 = $monitor->check($instansi, $t1);
+    $instansi->refresh();
+    expect($check2->status)->toBe(Status::Aktif)
+        ->and($check2->error)->toContain('Toleransi 1x gangguan sesaat')
+        ->and($instansi->status)->toBe(Status::Aktif)
+        ->and($instansi->last_http_code)->toBe(200)
+        ->and($instansi->down_since)->toBeNull();
+
+    // 3. Strike 2 (503 ke-2 berturut-turut): Divonis Tidak Aktif
+    $check3 = $monitor->check($instansi, $t2);
+    $instansi->refresh();
+    expect($check3->status)->toBe(Status::TidakAktif)
+        ->and($instansi->status)->toBe(Status::TidakAktif)
+        ->and($instansi->last_http_code)->toBe(503)
+        ->and($instansi->down_since?->timestamp)->toBe($t2->timestamp);
+});
+
+
 
