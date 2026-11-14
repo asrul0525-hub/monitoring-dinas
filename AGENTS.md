@@ -1,3 +1,9 @@
+# Aturan Repository (Berlaku untuk Semua Agent AI)
+
+## Wajib Selalu Git Commit Setelah Setiap Perubahan
+- Setiap kali menyelesaikan **perubahan, perbaikan, penghapusan, maupun penambahan** kode/file di repository ini (setelah verifikasi/build/test yang relevan lolos), **agent AI wajib langsung membuat `git commit`** dengan pesan commit yang jelas sebelum mengakhiri pekerjaan agar riwayat perubahan aman dan tidak terjadi kesalahan di lain waktu.
+- Pastikan hanya file terkait yang di-stage (hindari file `.env`, log, atau artefak sementara) dan laporkan hash commit kepada pengguna setelah selesai (lakukan `git push` juga bila pengguna memintanya).
+
 <laravel-boost-guidelines>
 # Laravel Application
 
