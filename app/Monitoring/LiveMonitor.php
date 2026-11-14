@@ -19,10 +19,61 @@ use Throwable;
 
 class LiveMonitor implements Monitor
 {
+    private const TRANSIENT_HTTP_CODES = [
+        408, // Request Timeout
+        429, // Too Many Requests
+        500, // Internal Server Error
+        502, // Bad Gateway
+        503, // Service Unavailable (LVE / Entry Process limit)
+        504, // Gateway Timeout
+        520, // Cloudflare Unknown Error
+        521, // Cloudflare Web Server Is Down
+        522, // Cloudflare Connection Timed Out
+        523, // Cloudflare Origin Is Unreachable
+        524, // Cloudflare A Timeout Occurred
+    ];
+
     public function check(Instansi $instansi, ?CarbonInterface $at = null): Check
     {
         $checkedAt = ($at ? CarbonImmutable::instance($at) : CarbonImmutable::now())
             ->setTimezone(config('app.timezone', 'UTC'));
+
+        $attempt = $this->performSingleFetch($instansi);
+
+        if (self::isTransientFailure($attempt['http_code'], $attempt['error'])) {
+            self::waitBeforeRetry();
+            $retryTimeout = max(16, (int) config('monitoring.timeout', 16));
+            $retry = $this->performSingleFetch($instansi, $retryTimeout);
+
+            if ($retry['http_code'] === 200 || $retry['http_code'] === 403 || $attempt['http_code'] === null) {
+                $attempt = $retry;
+            }
+        }
+
+        return $this->recordCheckResult(
+            $instansi,
+            $attempt['http_code'],
+            $attempt['response_ms'],
+            $attempt['html_body'],
+            $attempt['headers'],
+            $attempt['feed_body'],
+            $attempt['error'],
+            $checkedAt
+        );
+    }
+
+    /**
+     * @return array{
+     *     http_code: ?int,
+     *     response_ms: ?int,
+     *     html_body: ?string,
+     *     headers: array<string, mixed>,
+     *     feed_body: ?string,
+     *     error: ?string
+     * }
+     */
+    public function performSingleFetch(Instansi $instansi, ?int $timeoutSeconds = null): array
+    {
         $startNs = hrtime(true);
 
         $httpCode = null;
@@ -33,7 +84,7 @@ class LiveMonitor implements Monitor
         $error = null;
 
         try {
-            $response = $this->httpClient()->get($instansi->url);
+            $response = $this->httpClient($timeoutSeconds)->get($instansi->url);
             $elapsedMs = (int) round((hrtime(true) - $startNs) / 1_000_000);
             $httpCode = $response->status();
             $responseMs = max(1, $elapsedMs);
@@ -71,16 +122,39 @@ class LiveMonitor implements Monitor
             $error = $this->formatExceptionMessage($e);
         }
 
-        return $this->recordCheckResult(
-            $instansi,
-            $httpCode,
-            $responseMs,
-            $htmlBody,
-            $headers,
-            $feedBody,
-            $error,
-            $checkedAt
-        );
+        return [
+            'http_code' => $httpCode,
+            'response_ms' => $responseMs,
+            'html_body' => $htmlBody,
+            'headers' => $headers,
+            'feed_body' => $feedBody,
+            'error' => $error,
+        ];
+    }
+
+    public static function isTransientFailure(?int $httpCode, ?string $error): bool
+    {
+        if ($httpCode !== null) {
+            return in_array($httpCode, self::TRANSIENT_HTTP_CODES, true);
+        }
+
+        if ($error !== null && str_contains($error, 'DNS gagal')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static function waitBeforeRetry(?int $overrideDelayMs = null): void
+    {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
+        $delayMs = $overrideDelayMs ?? max(0, (int) config('monitoring.retry_delay_ms', 400));
+        if ($delayMs > 0) {
+            usleep($delayMs * 1000);
+        }
     }
 
     /**

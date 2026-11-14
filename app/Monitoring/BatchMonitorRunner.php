@@ -46,31 +46,98 @@ class BatchMonitorRunner
             return $count;
         }
 
-        $concurrency = max(1, (int) config('monitoring.concurrency', 8));
+        $concurrency = max(1, (int) config('monitoring.concurrency', 4));
+        $allInstansis = Instansi::query()->orderBy('id')->get();
+        if ($allInstansis->isEmpty()) {
+            return 0;
+        }
+
+        $waves = self::interleaveIntoWaves($allInstansis, $concurrency);
+        $deferredRetries = [];
         $total = 0;
 
-        Instansi::query()
-            ->orderBy('id')
-            ->chunk($concurrency, function (Collection $chunk) use ($at, $onProgress, &$total) {
-                $this->runLiveChunk($this->monitor, $chunk, $at, $onProgress);
-                $total += $chunk->count();
-            });
+        foreach ($waves as $wave) {
+            $this->runLiveChunk($this->monitor, $wave, $deferredRetries, $at, $onProgress);
+            $total += $wave->count();
+        }
+
+        if ($deferredRetries !== []) {
+            $this->processDeferredRetries($this->monitor, $deferredRetries, $at, $onProgress);
+        }
 
         return $total;
     }
 
     /**
+     * Sebar urutan instansi ke dalam gelombang (waves) menggunakan metode card-dealing
+     * berdasarkan klaster subdomain/kategori agar website pada satu server bersama
+     * (misal pkm-*.hsu.go.id atau kec-*.hsu.go.id) tidak pernah menumpuk di gelombang yang sama.
+     *
+     * @param  Collection<int, Instansi>  $instansis
+     * @return array<int, Collection<int, Instansi>>
+     */
+    public static function interleaveIntoWaves(Collection $instansis, int $concurrency): array
+    {
+        $concurrency = max(1, $concurrency);
+        $count = $instansis->count();
+        if ($count === 0) {
+            return [];
+        }
+
+        $numWaves = max(1, (int) ceil($count / $concurrency));
+
+        $clustered = $instansis
+            ->groupBy(fn (Instansi $instansi) => self::resolveServerCluster($instansi))
+            ->sortByDesc(fn (Collection $group) => $group->count())
+            ->flatten(1)
+            ->values();
+
+        /** @var array<int, array<int, Instansi>> $buckets */
+        $buckets = array_fill(0, $numWaves, []);
+
+        foreach ($clustered as $index => $instansi) {
+            $buckets[$index % $numWaves][] = $instansi;
+        }
+
+        return array_values(array_map(
+            fn (array $items) => new Collection($items),
+            array_filter($buckets, fn (array $items) => $items !== [])
+        ));
+    }
+
+    public static function resolveServerCluster(Instansi $instansi): string
+    {
+        $host = strtolower((string) parse_url($instansi->url, PHP_URL_HOST));
+
+        if (str_starts_with($host, 'pkm-')) {
+            return 'cluster_pkm';
+        }
+
+        if (str_starts_with($host, 'kec-') || str_starts_with($host, 'kel-')) {
+            return 'cluster_kec_kel';
+        }
+
+        if (! str_ends_with($host, '.hsu.go.id') && $host !== 'hsu.go.id') {
+            return 'cluster_external';
+        }
+
+        return 'cluster_'.($instansi->kategori ?: 'lainnya');
+    }
+
+    /**
      * @param  Collection<int, Instansi>  $chunk
+     * @param  array<int, array{instansi: Instansi, attempt: array<string, mixed>}>  $deferredRetries
      * @param  ?Closure(Instansi): void  $onProgress
      */
     private function runLiveChunk(
         LiveMonitor $liveMonitor,
         Collection $chunk,
+        array &$deferredRetries,
         ?CarbonInterface $at = null,
         ?Closure $onProgress = null
     ): void {
-        $timeout = (int) config('monitoring.timeout', 12);
-        $connectTimeout = (int) config('monitoring.connect_timeout', 6);
+        $timeout = (int) config('monitoring.timeout', 16);
+        $connectTimeout = (int) config('monitoring.connect_timeout', 8);
         $verifySsl = (bool) config('monitoring.verify_ssl', false);
         $userAgent = (string) config(
             'monitoring.user_agent',
@@ -155,6 +222,22 @@ class BatchMonitorRunner
                 $error = 'Koneksi jaringan gagal';
             }
 
+            if (LiveMonitor::isTransientFailure($httpCode, $error)) {
+                $deferredRetries[] = [
+                    'instansi' => $instansi,
+                    'attempt' => [
+                        'http_code' => $httpCode,
+                        'response_ms' => $responseMs,
+                        'html_body' => $htmlBody,
+                        'headers' => $headers,
+                        'feed_body' => $feedBody,
+                        'error' => $error,
+                    ],
+                ];
+
+                continue;
+            }
+
             $liveMonitor->recordCheckResult(
                 $instansi,
                 $httpCode,
@@ -163,6 +246,56 @@ class BatchMonitorRunner
                 $headers,
                 $feedBody,
                 $error,
+                $at
+            );
+
+            if ($onProgress) {
+                $onProgress($instansi);
+            }
+        }
+    }
+
+    /**
+     * Verifikasi ulang secara satuan (1-per-1) untuk instansi yang gagal transien (503, Timeout, dll.)
+     * saat pemeriksaan paralel agar tidak terjadi false-down akibat antrean server bersama.
+     *
+     * @param  array<int, array{instansi: Instansi, attempt: array<string, mixed>}>  $deferredRetries
+     * @param  ?Closure(Instansi): void  $onProgress
+     */
+    private function processDeferredRetries(
+        LiveMonitor $liveMonitor,
+        array $deferredRetries,
+        ?CarbonInterface $at = null,
+        ?Closure $onProgress = null
+    ): void {
+        $retryTimeout = max(18, (int) config('monitoring.timeout', 16));
+
+        foreach ($deferredRetries as $item) {
+            /** @var Instansi $instansi */
+            $instansi = $item['instansi'];
+            $initial = $item['attempt'];
+
+            LiveMonitor::waitBeforeRetry();
+            $verified = $liveMonitor->performSingleFetch($instansi, $retryTimeout);
+
+            // Jika percobaan verifikasi pertama masih terkena 503 rate-limit, beri jeda sedikit lebih panjang untuk konfirmasi akhir
+            if ($verified['http_code'] === 503) {
+                LiveMonitor::waitBeforeRetry(800);
+                $verified = $liveMonitor->performSingleFetch($instansi, $retryTimeout);
+            }
+
+            $final = ($verified['http_code'] !== null || $initial['http_code'] === null)
+                ? $verified
+                : $initial;
+
+            $liveMonitor->recordCheckResult(
+                $instansi,
+                $final['http_code'],
+                $final['response_ms'],
+                $final['html_body'],
+                $final['headers'],
+                $final['feed_body'],
+                $final['error'],
                 $at
             );
 
