@@ -46,7 +46,7 @@ class BatchMonitorRunner
             return $count;
         }
 
-        $concurrency = max(1, (int) config('monitoring.concurrency', 4));
+        $concurrency = max(1, (int) config('monitoring.concurrency', 6));
         $allInstansis = Instansi::query()->orderBy('id')->get();
         if ($allInstansis->isEmpty()) {
             return 0;
@@ -222,7 +222,13 @@ class BatchMonitorRunner
                 $error = 'Koneksi jaringan gagal';
             }
 
-            if (LiveMonitor::isTransientFailure($httpCode, $error)) {
+            // Hanya jadwalkan verifikasi ulang jika gagal dengan kode HTTP transien (misal 503/502)
+            // atau jika terkena timeout pada website yang sebelumnya TIDAK berstatus Tidak Aktif,
+            // sehingga website mati yang sudah Tidak Aktif tidak menahan waktu tunggu 2x.
+            $shouldRetryInBatch = LiveMonitor::isTransientFailure($httpCode, $error)
+                && ($httpCode !== null || $instansi->status !== \App\Enums\Status::TidakAktif);
+
+            if ($shouldRetryInBatch) {
                 $deferredRetries[] = [
                     'instansi' => $instansi,
                     'attempt' => [
@@ -268,7 +274,7 @@ class BatchMonitorRunner
         ?CarbonInterface $at = null,
         ?Closure $onProgress = null
     ): void {
-        $retryTimeout = max(18, (int) config('monitoring.timeout', 16));
+        $retryTimeout = max(12, (int) config('monitoring.timeout', 10));
 
         foreach ($deferredRetries as $item) {
             /** @var Instansi $instansi */

@@ -133,7 +133,40 @@ it('LiveMonitor melakukan auto-discovery link RSS feed pada head HTML saat feed_
 
     expect($check->status)->toBe(Status::Aktif)
         ->and($check->content_source)->toBe(ContentSource::Rss)
-        ->and($check->content_date?->format('Y-m-d'))->toBe('2026-11-06');
+        ->and($check->content_date?->format('Y-m-d'))->toBe('2026-11-06')
+        ->and($instansi->fresh()->feed_url)->toBe('https://portal-statis.hsu.go.id/feed/');
+});
+
+it('LiveMonitor otomatis memperbarui feed_url jika halaman utama memiliki URL RSS feed baru di head HTML', function () {
+    Setting::put('freshness_days', 30);
+    $now = CarbonImmutable::parse('2026-11-08T10:00:00+08:00');
+
+    Http::fake([
+        'https://portal-statis.hsu.go.id' => Http::response(
+            '<html><head><link rel="alternate" type="application/rss+xml" href="/rss-terbaru.xml" /></head><body>Banner Statis</body></html>',
+            200
+        ),
+        'https://portal-statis.hsu.go.id/feed-lama/' => Http::response('Not Found', 404),
+        'https://portal-statis.hsu.go.id/rss-terbaru.xml' => Http::response(
+            '<?xml version="1.0"?><rss version="2.0"><channel><item><pubDate>Sat, 07 Nov 2026 11:00:00 +0800</pubDate></item></channel></rss>',
+            200
+        ),
+    ]);
+
+    $instansi = Instansi::factory()->create([
+        'nama' => 'Portal Statis HSU',
+        'url' => 'https://portal-statis.hsu.go.id',
+        'feed_url' => 'https://portal-statis.hsu.go.id/feed-lama/',
+        'status' => Status::KurangAktif,
+    ]);
+
+    $check = app(LiveMonitor::class)->check($instansi, $now);
+
+    $instansi->refresh();
+    expect($check->status)->toBe(Status::Aktif)
+        ->and($check->content_source)->toBe(ContentSource::Rss)
+        ->and($check->content_date?->format('Y-m-d'))->toBe('2026-11-07')
+        ->and($instansi->feed_url)->toBe('https://portal-statis.hsu.go.id/rss-terbaru.xml');
 });
 
 it('LiveMonitor memaksa status Tidak Aktif meskipun HTTP 200 OK jika HTML mengandung kata kunci blacklist (seperti Kejari HSU site closed)', function () {

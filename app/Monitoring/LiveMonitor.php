@@ -14,6 +14,8 @@ use App\Monitoring\Parsers\NextJsActionExtractor;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -38,11 +40,18 @@ class LiveMonitor implements Monitor
         $checkedAt = ($at ? CarbonImmutable::instance($at) : CarbonImmutable::now())
             ->setTimezone(config('app.timezone', 'UTC'));
 
+        $startMs = (int) round(hrtime(true) / 1_000_000);
         $attempt = $this->performSingleFetch($instansi);
+        $elapsedMs = (int) round(hrtime(true) / 1_000_000) - $startMs;
 
-        if (self::isTransientFailure($attempt['http_code'], $attempt['error'])) {
+        // Hanya lakukan retry pada klik satuan jika gagal karena kode HTTP transien (misal 503/502)
+        // atau kegagalan koneksi cepat (< 4 detik), agar Admin tidak menunggu 2x timeout penuh saat situs mati
+        $shouldRetrySingle = self::isTransientFailure($attempt['http_code'], $attempt['error'])
+            && ($attempt['http_code'] !== null || $elapsedMs < 4000);
+
+        if ($shouldRetrySingle) {
             self::waitBeforeRetry();
-            $retryTimeout = max(16, (int) config('monitoring.timeout', 16));
+            $retryTimeout = max(10, (int) config('monitoring.timeout', 10));
             $retry = $this->performSingleFetch($instansi, $retryTimeout);
 
             if ($retry['http_code'] === 200 || $retry['http_code'] === 403 || $attempt['http_code'] === null) {
@@ -63,6 +72,8 @@ class LiveMonitor implements Monitor
     }
 
     /**
+     * Ambil halaman utama dan (bila sudah tersimpan) feed_url secara paralel agar waktu tunggu terpangkas separuhnya.
+     *
      * @return array{
      *     http_code: ?int,
      *     response_ms: ?int,
@@ -83,9 +94,60 @@ class LiveMonitor implements Monitor
         $feedBody = null;
         $error = null;
 
+        $timeout = $timeoutSeconds ?? (int) config('monitoring.timeout', 10);
+        $connectTimeout = (int) config('monitoring.connect_timeout', 5);
+        $verifySsl = (bool) config('monitoring.verify_ssl', false);
+        $userAgent = (string) config(
+            'monitoring.user_agent',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        );
+
         try {
-            $response = $this->httpClient($timeoutSeconds)->get($instansi->url);
-            $elapsedMs = (int) round((hrtime(true) - $startNs) / 1_000_000);
+            if ($instansi->feed_url) {
+                $responses = Http::pool(function (Pool $pool) use ($instansi, $timeout, $connectTimeout, $verifySsl, $userAgent) {
+                    $mainReq = $pool->as('main')
+                        ->timeout($timeout)
+                        ->connectTimeout($connectTimeout)
+                        ->withUserAgent($userAgent)
+                        ->withHeaders(self::defaultBrowserHeaders());
+
+                    $feedReq = $pool->as('feed')
+                        ->timeout(min(6, $timeout))
+                        ->connectTimeout($connectTimeout)
+                        ->withUserAgent($userAgent);
+
+                    if (! $verifySsl) {
+                        $mainReq = $mainReq->withoutVerifying();
+                        $feedReq = $feedReq->withoutVerifying();
+                    }
+
+                    $mainReq->get($instansi->url);
+                    $feedReq->get($instansi->feed_url);
+                });
+
+                $mainResult = $responses['main'] ?? null;
+                $feedResult = $responses['feed'] ?? null;
+
+                if ($mainResult instanceof Throwable) {
+                    throw $mainResult;
+                }
+
+                if (! ($mainResult instanceof Response)) {
+                    throw new \RuntimeException('Koneksi jaringan gagal');
+                }
+
+                $response = $mainResult;
+                if ($feedResult instanceof Response && $feedResult->successful()) {
+                    $feedBody = $feedResult->body();
+                }
+            } else {
+                $response = $this->httpClient($timeout)->get($instansi->url);
+            }
+
+            $transferTime = $response->transferStats?->getTransferTime();
+            $elapsedMs = $transferTime !== null
+                ? (int) round($transferTime * 1000)
+                : (int) round((hrtime(true) - $startNs) / 1_000_000);
             $httpCode = $response->status();
             $responseMs = max(1, $elapsedMs);
             $headers = $response->headers();
@@ -104,17 +166,7 @@ class LiveMonitor implements Monitor
                 }
             } else {
                 $error = "HTTP {$httpCode}";
-            }
-
-            if ($httpCode === 200 && $instansi->feed_url) {
-                try {
-                    $feedResp = $this->httpClient(6)->get($instansi->feed_url);
-                    if ($feedResp->successful()) {
-                        $feedBody = $feedResp->body();
-                    }
-                } catch (Throwable) {
-                    // Fallback gracefully to HTML body / headers when feed endpoint fails
-                }
+                $feedBody = null;
             }
         } catch (Throwable $e) {
             $httpCode = null;
@@ -176,6 +228,7 @@ class LiveMonitor implements Monitor
 
         $contentDate = $instansi->last_content_at ? CarbonImmutable::instance($instansi->last_content_at) : null;
         $source = $instansi->content_source;
+        $resolvedFeedUrl = $instansi->feed_url;
         $blacklistReason = null;
 
         if ($httpCode === 200) {
@@ -193,9 +246,23 @@ class LiveMonitor implements Monitor
                     $headers
                 );
 
-                // Multi-layer fallback if static HTML & configured feed did not yield a date
-                if ($detected['date'] === null && $htmlBody !== null && trim($htmlBody) !== '') {
-                    $detected = $this->attemptMultiLayerFallback($instansi, $htmlBody);
+                // Jika HTML halaman utama mengumumkan URL RSS/Atom baru di <head> yang berbeda dari feed_url lama,
+                // atau jika belum ada tanggal yang ditemukan, jalankan auto-discovery dan perbarui feed_url otomatis.
+                $discoveredInHtml = ($htmlBody !== null && trim($htmlBody) !== '')
+                    ? HtmlMetaParser::discoverFeedUrls($htmlBody, $instansi->url)
+                    : [];
+                $hasNewerFeedUrlInHtml = $discoveredInHtml !== []
+                    && $instansi->feed_url !== null
+                    && ! in_array($instansi->feed_url, $discoveredInHtml, true);
+
+                if (($detected['date'] === null || $hasNewerFeedUrlInHtml) && $htmlBody !== null && trim($htmlBody) !== '') {
+                    $fallback = $this->attemptMultiLayerFallback($instansi, $htmlBody, $discoveredInHtml);
+                    if ($fallback['date'] !== null) {
+                        $detected = $fallback;
+                        if (! empty($fallback['feed_url'])) {
+                            $resolvedFeedUrl = $fallback['feed_url'];
+                        }
+                    }
                 }
 
                 if ($detected['date'] !== null) {
@@ -226,6 +293,7 @@ class LiveMonitor implements Monitor
 
         $instansi->update([
             'status' => $status,
+            'feed_url' => $resolvedFeedUrl,
             'last_checked_at' => $checkedAt,
             'last_content_at' => $blacklistReason !== null ? null : ($contentDate ?? $instansi->last_content_at),
             'last_response_ms' => $responseMs,
@@ -238,15 +306,16 @@ class LiveMonitor implements Monitor
     }
 
     /**
-     * @return array{date: ?CarbonImmutable, source: ContentSource}
+     * @param  ?array<int, string>  $preDiscoveredUrls
+     * @return array{date: ?CarbonImmutable, source: ContentSource, feed_url?: ?string}
      */
-    private function attemptMultiLayerFallback(Instansi $instansi, string $htmlBody): array
+    private function attemptMultiLayerFallback(Instansi $instansi, string $htmlBody, ?array $preDiscoveredUrls = null): array
     {
         // Layer 3: Auto-discovered <link rel="alternate" type="application/rss+xml"> or sitemap in <head>
-        $discoveredUrls = HtmlMetaParser::discoverFeedUrls($htmlBody, $instansi->url);
+        $discoveredUrls = $preDiscoveredUrls ?? HtmlMetaParser::discoverFeedUrls($htmlBody, $instansi->url);
         foreach (array_slice($discoveredUrls, 0, 2) as $discoveredUrl) {
             try {
-                $resp = $this->httpClient(5)->get($discoveredUrl);
+                $resp = $this->httpClient(4)->get($discoveredUrl);
                 if ($resp->successful()) {
                     $detected = ContentFreshnessParser::detectWithSource(
                         $resp->body(),
@@ -255,7 +324,11 @@ class LiveMonitor implements Monitor
                         []
                     );
                     if ($detected['date'] !== null) {
-                        return $detected;
+                        return [
+                            'date' => $detected['date'],
+                            'source' => $detected['source'],
+                            'feed_url' => $discoveredUrl,
+                        ];
                     }
                 }
             } catch (Throwable) {
@@ -268,15 +341,15 @@ class LiveMonitor implements Monitor
             $nextDate = NextJsActionExtractor::extractLatestDate(
                 $htmlBody,
                 $instansi->url,
-                timeout: 6,
+                timeout: 5,
                 verifySsl: (bool) config('monitoring.verify_ssl', false)
             );
             if ($nextDate !== null) {
-                return ['date' => $nextDate, 'source' => ContentSource::Dom];
+                return ['date' => $nextDate, 'source' => ContentSource::Dom, 'feed_url' => null];
             }
         }
 
-        return ['date' => null, 'source' => ContentSource::Dom];
+        return ['date' => null, 'source' => ContentSource::Dom, 'feed_url' => null];
     }
 
     /**
