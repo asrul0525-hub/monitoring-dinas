@@ -1,12 +1,20 @@
-import { ResponseSeriesPoint, ResponseTimeLine } from '@/Components/charts/ResponseTimeLine';
+import type { ResponseSeriesPoint } from '@/Components/charts/ResponseTimeLine';
 import { InstansiFormModal } from '@/Components/instansi/InstansiFormModal';
 import { AppShell } from '@/Components/shell/AppShell';
 import { FreshnessText } from '@/Components/status/FreshnessText';
+import { HttpCodeBadge } from '@/Components/status/HttpCodeBadge';
 import { StatusBadge } from '@/Components/status/StatusBadge';
+import { Skeleton } from '@/Components/ui/Skeleton';
 import { formatDateTimeId, formatMs } from '@/lib/format';
 import { InstansiRow, KATEGORI_INSTANSI_LABELS, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
 import { Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
+
+const ResponseTimeLine = lazy(() =>
+    import('@/Components/charts/ResponseTimeLine').then((m) => ({
+        default: m.ResponseTimeLine,
+    })),
+);
 
 interface CheckHistoryItem {
     id: number;
@@ -21,6 +29,7 @@ interface CheckHistoryItem {
 
 type ShowProps = SharedProps & {
     instansi: InstansiRow;
+    latestCheckError?: string | null;
     uptime: {
         d7: number | null;
         d30: number | null;
@@ -29,9 +38,20 @@ type ShowProps = SharedProps & {
     checks: Paginated<CheckHistoryItem>;
 };
 
-export default function InstansiShow({ instansi, uptime, series, checks }: ShowProps) {
+export default function InstansiShow({
+    instansi,
+    latestCheckError = null,
+    uptime,
+    series,
+    checks,
+}: ShowProps) {
     const [checking, setChecking] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
+
+    const isWaf403 = instansi.lastHttpCode === 403;
+    const isClosed200 = instansi.lastHttpCode === 200 && instansi.status === 'tidak-aktif';
+    const showDiagnosisBanner =
+        instansi.status === 'tidak-aktif' || isWaf403 || Boolean(latestCheckError);
 
     const handleCheckNow = () => {
         if (checking) return;
@@ -67,6 +87,8 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                     </a>
                     <Link
                         href={`/laporan?instansi[]=${instansi.id}`}
+                        prefetch
+                        cacheFor="10s"
                         className="btn-secondary inline-flex h-9 items-center px-3.5 text-xs"
                     >
                         Lihat di laporan
@@ -89,9 +111,61 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                 </>
             }
         >
+            <div className="mb-4 flex items-center justify-between">
+                <Link
+                    href="/instansi"
+                    prefetch
+                    cacheFor="10s"
+                    className="btn-secondary inline-flex h-8 items-center gap-1.5 px-3 text-xs"
+                >
+                    <span aria-hidden="true">←</span>
+                    <span>Kembali ke Daftar Instansi</span>
+                </Link>
+            </div>
+
             <div className="grid grid-cols-12 gap-5">
+                {showDiagnosisBanner && (
+                    <div
+                        role="status"
+                        style={{ animationDelay: '0ms' }}
+                        className={`surface-card motion-stagger col-span-12 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between ${
+                            instansi.status === 'tidak-aktif'
+                                ? 'border-status-tidak-border'
+                                : 'border-status-kurang-border'
+                        }`}
+                    >
+                        <div className="space-y-1 text-xs">
+                            <div className="font-semibold text-ink-primary">
+                                {isClosed200
+                                    ? 'Deteksi Soft-200: Halaman Situs Ditutup / Dalam Perbaikan'
+                                    : isWaf403
+                                      ? 'Proteksi Keamanan WAF / CDN Terdeteksi (HTTP 403)'
+                                      : 'Gangguan Akses Website Terdeteksi'}
+                            </div>
+                            <p className="text-ink-secondary">
+                                {latestCheckError
+                                    ? latestCheckError
+                                    : isWaf403
+                                      ? 'Server merespons aktif namun membatasi akses bot/scraper untuk pengambilan tanggal konten.'
+                                      : 'Pengecekan terakhir gagal menjangkau server website instansi.'}
+                            </p>
+                        </div>
+                        <div className="shrink-0">
+                            <HttpCodeBadge
+                                code={instansi.lastHttpCode}
+                                status={instansi.status}
+                                error={latestCheckError}
+                                neverChecked={!instansi.lastCheckedAt}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {/* Summary strip */}
-                <div className="surface-card col-span-12 grid grid-cols-4 divide-x divide-line-subtle p-5">
+                <div
+                    style={{ animationDelay: '55ms' }}
+                    className="surface-card motion-stagger motion-card-hover col-span-12 grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-line-subtle"
+                >
                     <div className="px-4 first:pl-0">
                         <span className="text-xs font-medium text-ink-secondary">Status & Freshness</span>
                         <p className="mt-1 text-sm font-semibold text-ink-primary">
@@ -125,7 +199,10 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                 </div>
 
                 {/* Line chart response time 30 days */}
-                <section className="surface-card col-span-12 p-6">
+                <section
+                    style={{ animationDelay: '110ms' }}
+                    className="surface-card motion-stagger motion-card-hover col-span-12 p-6"
+                >
                     <div className="mb-4 flex items-center justify-between">
                         <div>
                             <h2 className="text-base font-semibold text-ink-primary">
@@ -136,11 +213,16 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                             </p>
                         </div>
                     </div>
-                    <ResponseTimeLine series={series} />
+                    <Suspense fallback={<Skeleton className="h-64 w-full rounded-xl" />}>
+                        <ResponseTimeLine series={series} />
+                    </Suspense>
                 </section>
 
                 {/* Checks history table */}
-                <section className="surface-table col-span-12 overflow-hidden">
+                <section
+                    style={{ animationDelay: '165ms' }}
+                    className="surface-table motion-stagger col-span-12 overflow-hidden"
+                >
                     <div className="border-b border-line-subtle px-5 py-4">
                         <h2 className="text-base font-semibold text-ink-primary">Riwayat Pengecekan</h2>
                         <p className="mt-0.5 text-xs text-ink-secondary">
@@ -175,8 +257,12 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                                                 <td className="px-5 py-3">
                                                     <StatusBadge status={chk.status} size="sm" />
                                                 </td>
-                                                <td className="tabular-nums px-5 py-3 text-xs text-ink-primary">
-                                                    {chk.httpCode ?? 'Timeout'}
+                                                <td className="px-5 py-3">
+                                                    <HttpCodeBadge
+                                                        code={chk.httpCode}
+                                                        status={chk.status}
+                                                        error={chk.error}
+                                                    />
                                                 </td>
                                                 <td className="tabular-nums px-5 py-3 text-xs text-ink-primary">
                                                     {formatMs(chk.responseMs)}
@@ -184,7 +270,7 @@ export default function InstansiShow({ instansi, uptime, series, checks }: ShowP
                                                 <td className="tabular-nums px-5 py-3 text-xs text-ink-secondary">
                                                     {formatDateTimeId(chk.contentDate)}
                                                 </td>
-                                                <td className="px-5 py-3 text-xs text-ink-secondary">
+                                                <td className="max-w-md whitespace-normal px-5 py-3 text-xs text-ink-secondary">
                                                     {chk.error ?? 'OK'}
                                                 </td>
                                             </tr>

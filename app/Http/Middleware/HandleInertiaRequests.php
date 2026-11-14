@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
         $nextCheckAt = MonitoringSchedule::nextRunAt($intervalHours)->toIso8601String();
         $schedulerActive = MonitoringSchedule::isSchedulerActive();
         $alertItems = [];
+        $quickSearchItems = [];
 
         if ($hasTable) {
             $grouped = Instansi::query()
@@ -88,6 +89,19 @@ class HandleInertiaRequests extends Middleware
                     ])
                     ->values()
                     ->all();
+
+                $quickSearchItems = Instansi::query()
+                    ->orderBy('nama')
+                    ->get(['id', 'nama', 'url', 'kategori', 'status'])
+                    ->map(fn (Instansi $i) => [
+                        'id' => (int) $i->id,
+                        'nama' => $i->nama,
+                        'url' => $i->url,
+                        'kategori' => is_string($i->kategori) && $i->kategori !== '' ? $i->kategori : 'dinas',
+                        'status' => $i->status?->value,
+                    ])
+                    ->values()
+                    ->all();
             }
         }
 
@@ -114,6 +128,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'isSampleData' => $boundMonitor instanceof FakeMonitor,
             'statusCounts' => $statusCounts,
+            'quickSearchItems' => $quickSearchItems,
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
             ],

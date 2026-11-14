@@ -18,13 +18,36 @@ class InstansiController extends Controller
     {
         $rawStatus = (string) $request->query('status', '');
         $statusEnum = Status::tryFrom($rawStatus);
+        $isAttentionFilter = $rawStatus === 'perlu-perhatian';
+        $statusFilter = $isAttentionFilter ? 'perlu-perhatian' : $statusEnum?->value;
+
+        $rawKategori = (string) $request->query('kategori', '');
+        $kategori = in_array($rawKategori, Instansi::KATEGORI_KEYS, true)
+            ? $rawKategori
+            : null;
         $q = trim((string) $request->query('q', ''));
 
         $query = Instansi::query();
 
-        if ($statusEnum !== null) {
+        if ($isAttentionFilter) {
+            $query->whereIn('status', [
+                Status::TidakAktif->value,
+                Status::KurangAktif->value,
+            ])->orderByRaw("CASE WHEN status = 'tidak-aktif' THEN 0 ELSE 1 END ASC");
+        } elseif ($statusEnum !== null) {
             $query->where('status', $statusEnum->value);
         }
+
+        if ($kategori !== null) {
+            $query->where('kategori', $kategori);
+        }
+
+        $query->orderBy('nama');
+
+        $allRows = (clone $query)
+            ->get()
+            ->map(fn (Instansi $i) => $i->toRow())
+            ->values();
 
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
@@ -34,15 +57,16 @@ class InstansiController extends Controller
         }
 
         $paginator = $query
-            ->orderBy('nama')
             ->paginate(25)
             ->withQueryString()
             ->through(fn (Instansi $i) => $i->toRow());
 
         return Inertia::render('Instansi/Index', [
             'rows' => $paginator,
+            'allRows' => $allRows,
             'filters' => [
-                'status' => $statusEnum?->value,
+                'status' => $statusFilter,
+                'kategori' => $kategori,
                 'q' => $q,
             ],
             'openTambah' => $request->boolean('tambah'),
@@ -124,8 +148,14 @@ class InstansiController extends Controller
                 'error' => $c->error,
             ]);
 
+        $latestCheckError = $instansi->checks()
+            ->orderByDesc('checked_at')
+            ->orderByDesc('id')
+            ->value('error');
+
         return Inertia::render('Instansi/Show', [
             'instansi' => $instansi->toRow(),
+            'latestCheckError' => $latestCheckError,
             'uptime' => [
                 'd7' => $uptime7,
                 'd30' => $uptime30,

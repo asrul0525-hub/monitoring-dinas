@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Status;
+use App\Models\Check;
 use App\Models\Instansi;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,6 +34,32 @@ class DashboardController extends Controller
             ->values()
             ->all();
 
+        $attentionStale = Instansi::query()
+            ->where('status', Status::KurangAktif)
+            ->orderByRaw('last_content_at IS NULL ASC, last_content_at ASC, id ASC')
+            ->limit(6)
+            ->get()
+            ->map(fn (Instansi $i) => $i->toRow())
+            ->values()
+            ->all();
+
+        $attentionReasons = [];
+        $downIds = $downItems->pluck('id')->all();
+        if ($downIds !== []) {
+            $latestCheckIds = Check::query()
+                ->whereIn('instansi_id', $downIds)
+                ->selectRaw('MAX(id) as latest_id')
+                ->groupBy('instansi_id')
+                ->pluck('latest_id');
+            if ($latestCheckIds->isNotEmpty()) {
+                $attentionReasons = Check::query()
+                    ->whereIn('id', $latestCheckIds)
+                    ->whereNotNull('error')
+                    ->pluck('error', 'instansi_id')
+                    ->all();
+            }
+        }
+
         $fastest = Instansi::query()
             ->whereIn('status', [Status::Aktif->value, Status::KurangAktif->value])
             ->whereNotNull('last_response_ms')
@@ -45,8 +72,10 @@ class DashboardController extends Controller
             ->all();
 
         $stalest = Instansi::query()
-            ->whereNotNull('status')
-            ->orderByRaw('last_content_at IS NULL DESC, last_content_at ASC, id ASC')
+            ->whereIn('status', [Status::KurangAktif->value, Status::Aktif->value])
+            ->whereNotNull('last_content_at')
+            ->orderBy('last_content_at', 'asc')
+            ->orderBy('id', 'asc')
             ->limit(5)
             ->get()
             ->map(fn (Instansi $i) => $i->toRow())
@@ -70,7 +99,7 @@ class DashboardController extends Controller
         $avgResponseMs = $avgResponseRaw !== null ? (int) round((float) $avgResponseRaw) : null;
 
         $allInstansi = Instansi::query()->get(['kategori', 'status']);
-        $kategoriKeys = ['vertikal', 'dinas', 'kec_kel_pkm'];
+        $kategoriKeys = Instansi::KATEGORI_KEYS;
         $kategoriBreakdown = [];
         foreach ($kategoriKeys as $kat) {
             $group = $allInstansi->filter(fn (Instansi $i) => ($i->kategori ?: 'dinas') === $kat);
@@ -85,6 +114,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'attention' => $attention,
+            'attentionStale' => $attentionStale,
+            'attentionReasons' => $attentionReasons,
             'fastest' => $fastest,
             'stalest' => $stalest,
             'failedLastCycle' => $failedLastCycle,

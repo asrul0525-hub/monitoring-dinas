@@ -14,6 +14,22 @@ class Instansi extends Model
     /** @use HasFactory<InstansiFactory> */
     use HasFactory;
 
+    public const KATEGORI_KEYS = [
+        'vertikal',
+        'dinas',
+        'kec_kel_pkm',
+        'layanan_pemerintah',
+        'layanan_publik',
+    ];
+
+    public const KATEGORI_LABELS = [
+        'vertikal' => 'Instansi Vertikal',
+        'dinas' => 'Dinas',
+        'kec_kel_pkm' => 'Kec/Kel/PKM',
+        'layanan_pemerintah' => 'Layanan Pemerintah',
+        'layanan_publik' => 'Layanan Publik',
+    ];
+
     protected $table = 'instansi';
 
     protected $fillable = [

@@ -65,7 +65,7 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
         <div className="flex flex-col justify-between gap-4">
             {/* 3 Mini Metric KPI Cards (mengisi ruang atas dengan proporsional) */}
             <div className="grid grid-cols-3 gap-2.5">
-                <div className="surface-elevated rounded-xl p-3">
+                <div className="surface-elevated motion-card-hover rounded-xl p-3">
                     <div className="flex items-center gap-1.5 text-[11px] font-medium text-ink-secondary">
                         <span className="status-dot--aktif h-2 w-2 rounded-full" aria-hidden="true" />
                         <span>Rata-rata Uptime</span>
@@ -77,7 +77,7 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
                     </p>
                 </div>
 
-                <div className="surface-elevated rounded-xl p-3">
+                <div className="surface-elevated motion-card-hover rounded-xl p-3">
                     <div className="flex items-center gap-1.5 text-[11px] font-medium text-ink-secondary">
                         <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
                         <span>Rata-rata Latensi</span>
@@ -89,7 +89,7 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
                     </p>
                 </div>
 
-                <div className="surface-elevated rounded-xl p-3">
+                <div className="surface-elevated motion-card-hover rounded-xl p-3">
                     <div className="flex items-center gap-1.5 text-[11px] font-medium text-ink-secondary">
                         <span
                             className={`status-dot--tidak h-2 w-2 rounded-full ${
@@ -107,7 +107,7 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
 
             {/* Horizontal Status Bars */}
             <div className="space-y-2.5" role="list" aria-label="Grafik batang horizontal status website">
-                {BARS.map((bar) => {
+                {BARS.map((bar, idx) => {
                     const count = counts[bar.key];
                     const pct = checked > 0 ? Math.round((count / checked) * 1000) / 10 : 0;
                     const widthPct = checked > 0 ? Math.max(count > 0 ? 4 : 0, (count / checked) * 100) : 0;
@@ -117,7 +117,7 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
                             key={bar.key}
                             type="button"
                             onClick={() => router.get('/instansi', { status: bar.key })}
-                            className="surface-elevated group block w-full rounded-xl p-3 text-left hover:border-accent"
+                            className="surface-elevated motion-card-hover group block w-full rounded-xl p-3 text-left hover:border-accent"
                         >
                             <div className="mb-1.5 flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
@@ -146,10 +146,11 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
 
                             <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-card p-0.5">
                                 <div
-                                    className="h-full rounded-full transition-all duration-700 ease-out"
+                                    className="motion-bar h-full rounded-full transition-all duration-700 ease-out"
                                     style={{
                                         width: `${widthPct}%`,
                                         background: bar.fillColor,
+                                        animationDelay: `${120 + idx * 90}ms`,
                                     }}
                                 />
                             </div>
@@ -171,13 +172,13 @@ export function StatusBarChart({ counts, kpi, kategoriBreakdown = [] }: StatusBa
                             </span>
                         )}
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {kategoriBreakdown.map((item) => (
                             <button
                                 key={item.kategori}
                                 type="button"
                                 onClick={() => router.get('/laporan', { kategori: item.kategori })}
-                                className="surface-elevated flex flex-col justify-between rounded-xl px-3 py-2.5 text-left hover:border-accent"
+                                className="surface-elevated motion-card-hover flex flex-col justify-between rounded-xl px-3 py-2.5 text-left hover:border-accent"
                             >
                                 <div className="flex items-center justify-between">
                                     <span className="truncate text-[11px] font-semibold text-ink-primary">

@@ -94,7 +94,6 @@ body {
         linear-gradient(160deg, var(--bg-canvas-start) 0%, var(--bg-canvas-end) 100%);
     color: var(--text-primary);
     min-height: 100vh;
-    min-width: 1366px;
 }
 
 .tabular-nums {
@@ -234,7 +233,7 @@ button:active:not(:disabled),
 }
 
 .input-control {
-    background: var(--bg-elevated);
+    background-color: var(--bg-elevated);
     color: var(--text-primary);
     border: 1px solid var(--border-strong);
     border-radius: 10px;
@@ -270,6 +269,12 @@ select:focus-visible {
     background: var(--status-aktif-bg);
     color: var(--status-aktif);
     border: 1px solid var(--status-aktif-border);
+}
+
+.status-dot {
+    display: inline-block;
+    flex-shrink: 0;
+    border-radius: 9999px;
 }
 
 .status-dot--aktif {
@@ -331,16 +336,63 @@ select:focus-visible {
 @keyframes fadeInSlideUp {
     from {
         opacity: 0;
-        transform: translateY(6px);
+        translate: 0 14px;
     }
     to {
         opacity: 1;
-        transform: none;
+        translate: 0 0;
     }
 }
 
 .animate-page-enter {
-    animation: fadeInSlideUp 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: fadeInSlideUp 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.motion-stagger {
+    animation: fadeInSlideUp 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes barGrowX {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+.motion-bar {
+    transform-origin: left center;
+    animation: barGrowX 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.keyword-highlight {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 0 2px;
+    font-weight: 700;
+}
+
+.motion-card-hover {
+    transition:
+        transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 200ms ease,
+        box-shadow 200ms ease;
+}
+
+.motion-card-hover:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow:
+        0 14px 28px -14px rgba(2, 6, 23, 0.55),
+        0 0 0 1px var(--accent-soft);
+}
+
+:root.light .motion-card-hover:hover {
+    box-shadow:
+        0 14px 28px -14px rgba(15, 23, 42, 0.18),
+        0 0 0 1px var(--accent-soft);
 }
 
 @keyframes modalPopIn {

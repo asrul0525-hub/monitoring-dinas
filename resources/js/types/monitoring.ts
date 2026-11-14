@@ -4,12 +4,19 @@ export type StatusKey = 'aktif' | 'kurang-aktif' | 'tidak-aktif';
 
 export type ContentSourceKey = 'sitemap' | 'rss' | 'dom';
 
-export type KategoriInstansiKey = 'vertikal' | 'dinas' | 'kec_kel_pkm';
+export type KategoriInstansiKey =
+    | 'vertikal'
+    | 'dinas'
+    | 'kec_kel_pkm'
+    | 'layanan_pemerintah'
+    | 'layanan_publik';
 
 export const KATEGORI_INSTANSI_LABELS: Record<KategoriInstansiKey, string> = {
     vertikal: 'Instansi Vertikal',
     dinas: 'Dinas',
     kec_kel_pkm: 'Kec/Kel/PKM',
+    layanan_pemerintah: 'Layanan Pemerintah',
+    layanan_publik: 'Layanan Publik',
 };
 
 export interface InstansiRow {
@@ -45,6 +52,14 @@ export interface Paginated<T> {
     links: { url: string | null; label: string; active: boolean }[];
 }
 
+export interface QuickSearchInstansiItem {
+    id: number;
+    nama: string;
+    url: string;
+    kategori: KategoriInstansiKey;
+    status: StatusKey | null;
+}
+
 export type SharedProps = PageProps<{
     schedule: {
         lastCheckAt: string | null;
@@ -58,6 +73,7 @@ export type SharedProps = PageProps<{
     };
     isSampleData: boolean;
     statusCounts: StatusCounts;
+    quickSearchItems?: QuickSearchInstansiItem[];
     flash?: {
         status?: string | null;
     };

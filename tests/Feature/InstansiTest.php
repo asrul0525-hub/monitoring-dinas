@@ -34,6 +34,7 @@ it('memfilter instansi berdasarkan status dan pencarian nama/url', function () {
             ->where('filters.q', '05')
             ->has('rows.data', 1)
             ->where('rows.data.0.id', $match->id)
+            ->has('allRows', 2)
         );
 });
 
@@ -208,4 +209,116 @@ it('menyimpan dan memvalidasi kategori instansi (vertikal, dinas, kec_kel_pkm)',
             'kategori' => 'Kategori instansi tidak valid.',
         ]);
 });
+
+it('memfilter instansi berdasarkan kategori dan menyertakan latestCheckError pada halaman detail', function () {
+    $user = User::factory()->create();
+
+    $kecamatan = Instansi::factory()->create([
+        'nama' => 'Kecamatan Amuntai Tengah',
+        'kategori' => 'kec_kel_pkm',
+        'status' => Status::TidakAktif,
+    ]);
+    Instansi::factory()->create([
+        'nama' => 'Dinas Komunikasi HSU',
+        'kategori' => 'dinas',
+        'status' => Status::Aktif,
+    ]);
+
+    Check::factory()->create([
+        'instansi_id' => $kecamatan->id,
+        'http_code' => 200,
+        'status' => Status::TidakAktif,
+        'error' => 'Soft-200: This site has been closed',
+    ]);
+
+    $this->actingAs($user)
+        ->get('/instansi?kategori=kec_kel_pkm')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.kategori', 'kec_kel_pkm')
+            ->has('rows.data', 1)
+            ->where('rows.data.0.id', $kecamatan->id)
+        );
+
+    $this->actingAs($user)
+        ->get('/instansi?kategori=tidak_valid')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.kategori', null)
+            ->has('rows.data', 2)
+        );
+
+    $this->actingAs($user)
+        ->get("/instansi/{$kecamatan->id}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latestCheckError', 'Soft-200: This site has been closed')
+        );
+});
+
+it('memfilter gabungan tidak-aktif dan kurang-aktif lewat status=perlu-perhatian', function () {
+    $user = User::factory()->create();
+
+    $down = Instansi::factory()->create([
+        'nama' => 'Z-Down',
+        'status' => Status::TidakAktif,
+    ]);
+    $stale = Instansi::factory()->create([
+        'nama' => 'A-Stale',
+        'status' => Status::KurangAktif,
+    ]);
+    Instansi::factory()->create([
+        'nama' => 'M-Aktif',
+        'status' => Status::Aktif,
+    ]);
+
+    $this->actingAs($user)
+        ->get('/instansi?status=perlu-perhatian')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'perlu-perhatian')
+            ->has('rows.data', 2)
+            ->where('rows.data.0.id', $down->id)
+            ->where('rows.data.1.id', $stale->id)
+        );
+});
+
+it('mendukung pembuatan dan pemfilteran kategori layanan_pemerintah serta layanan_publik', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post('/instansi', [
+            'nama' => 'SIMPEG HSU',
+            'kategori' => 'layanan_pemerintah',
+            'url' => 'https://simpeg.hsu.go.id',
+        ])
+        ->assertRedirect('/instansi');
+
+    $this->actingAs($user)
+        ->post('/instansi', [
+            'nama' => 'LPSE HSU',
+            'kategori' => 'layanan_publik',
+            'url' => 'https://lpse.hsu.go.id',
+        ])
+        ->assertRedirect('/instansi');
+
+    $this->actingAs($user)
+        ->get('/instansi?kategori=layanan_pemerintah')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.kategori', 'layanan_pemerintah')
+            ->has('rows.data', 1)
+            ->where('rows.data.0.nama', 'SIMPEG HSU')
+        );
+
+    $this->actingAs($user)
+        ->get('/instansi?kategori=layanan_publik')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.kategori', 'layanan_publik')
+            ->has('rows.data', 1)
+            ->where('rows.data.0.nama', 'LPSE HSU')
+        );
+});
+
 

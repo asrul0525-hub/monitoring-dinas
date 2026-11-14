@@ -39,7 +39,7 @@ class ReportQuery
             $query->whereIn('id', $instansiIds);
         }
 
-        if ($kategori !== null && in_array($kategori, ['vertikal', 'dinas', 'kec_kel_pkm'], true)) {
+        if ($kategori !== null && in_array($kategori, Instansi::KATEGORI_KEYS, true)) {
             $query->where('kategori', $kategori);
         }
 

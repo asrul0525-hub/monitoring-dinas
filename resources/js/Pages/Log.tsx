@@ -1,4 +1,6 @@
+import { InstansiKategoriPopover } from '@/Components/filters/InstansiKategoriPopover';
 import { AppShell } from '@/Components/shell/AppShell';
+import { HttpCodeBadge } from '@/Components/status/HttpCodeBadge';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatDateTimeId, formatMs } from '@/lib/format';
 import { KATEGORI_INSTANSI_LABELS, KategoriInstansiKey, Paginated, SharedProps, StatusKey } from '@/types/monitoring';
@@ -9,7 +11,7 @@ import {
     getCoreRowModel,
     useReactTable,
 } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 interface LogRow {
     id: number;
@@ -37,16 +39,7 @@ interface LogProps extends SharedProps {
 
 const columnHelper = createColumnHelper<LogRow>();
 
-const KATEGORI_LIST: { key: KategoriInstansiKey | null; label: string }[] = [
-    { key: null, label: 'Semua Instansi' },
-    { key: 'vertikal', label: 'Instansi Vertikal' },
-    { key: 'dinas', label: 'Dinas' },
-    { key: 'kec_kel_pkm', label: 'Kec/Kel/PKM' },
-];
-
 export default function Log({ rows, instansiOptions, filters }: LogProps) {
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-
     const updateFilter = (next: {
         instansi?: number | null;
         kategori?: KategoriInstansiKey | null;
@@ -76,14 +69,8 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
     };
 
     const resetFilters = () => {
-        setDropdownOpen(false);
         router.get('/log');
     };
-
-    const visibleInstansiOptions = useMemo(() => {
-        if (!filters.kategori) return instansiOptions;
-        return instansiOptions.filter((opt) => opt.kategori === filters.kategori);
-    }, [instansiOptions, filters.kategori]);
 
     const selectorLabel = useMemo(() => {
         if (filters.instansi !== null) {
@@ -114,6 +101,8 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                         <div className="flex items-center gap-2">
                             <Link
                                 href={`/instansi/${inst.id}`}
+                                prefetch
+                                cacheFor="10s"
                                 className="font-medium text-ink-primary transition-colors hover:text-accent"
                             >
                                 {inst.nama}
@@ -127,26 +116,13 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             }),
             columnHelper.accessor('httpCode', {
                 header: 'HTTP',
-                cell: (info) => {
-                    const code = info.getValue();
-                    if (code === null) {
-                        return (
-                            <span className="font-mono text-xs font-semibold text-status-tidak">
-                                TIMEOUT
-                            </span>
-                        );
-                    }
-                    const isOk = code === 200;
-                    return (
-                        <span
-                            className={`tabular-nums font-mono text-xs font-semibold ${
-                                isOk ? 'text-status-aktif' : 'text-status-tidak'
-                            }`}
-                        >
-                            {code}
-                        </span>
-                    );
-                },
+                cell: (info) => (
+                    <HttpCodeBadge
+                        code={info.getValue()}
+                        status={info.row.original.status}
+                        error={info.row.original.error}
+                    />
+                ),
             }),
             columnHelper.accessor('responseMs', {
                 header: 'Response Time',
@@ -161,14 +137,19 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                 cell: (info) => <StatusBadge status={info.getValue()} />,
             }),
             columnHelper.accessor('error', {
-                header: 'Pesan Error Mentah',
+                header: 'Keterangan / Error',
                 cell: (info) => {
                     const err = info.getValue();
                     if (!err) {
                         return <span className="text-xs text-ink-secondary">—</span>;
                     }
+                    const isWaf = info.row.original.httpCode === 403;
                     return (
-                        <code className="surface-elevated rounded px-2 py-0.5 font-mono text-xs text-status-tidak">
+                        <code
+                            className={`surface-elevated rounded px-2 py-0.5 font-mono text-xs ${
+                                isWaf ? 'text-status-kurang' : 'text-status-tidak'
+                            }`}
+                        >
                             {err}
                         </code>
                     );
@@ -190,88 +171,23 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             subtitle="Catatan seluruh pengecekan otomatis dan manual dari semua website instansi (50 entri per halaman)."
         >
             {/* Filter Bar */}
-            <div className="surface-card mb-5 flex flex-wrap items-center justify-between gap-4 p-4">
-                <div className="flex items-center gap-3">
-                    {/* Unified Instansi + Kategori Popover Selector (sama seperti Laporan) */}
-                    <div className="relative">
-                        <button
-                            type="button"
-                            onClick={() => setDropdownOpen((v) => !v)}
-                            className="input-control flex h-9 min-w-[240px] items-center justify-between px-3 text-left text-xs"
-                        >
-                            <span className="truncate">{selectorLabel}</span>
-                            <span className="ml-2 text-xs text-ink-secondary">▾</span>
-                        </button>
-
-                        {dropdownOpen && (
-                            <div className="surface-elevated animate-modal-pop absolute left-0 top-full z-30 mt-1 w-80 rounded-xl p-3 shadow-2xl">
-                                <div className="mb-2 flex items-center justify-between border-b border-line-subtle pb-2 text-xs">
-                                    <span className="font-semibold text-ink-primary">
-                                        Pilih Kategori / Instansi
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDropdownOpen(false)}
-                                        className="text-ink-secondary hover:text-ink-primary"
-                                    >
-                                        Tutup
-                                    </button>
-                                </div>
-
-                                <div className="mb-2.5 grid grid-cols-2 gap-1.5 border-b border-line-subtle pb-2.5">
-                                    {KATEGORI_LIST.map((item) => {
-                                        const active =
-                                            filters.kategori === item.key && filters.instansi === null;
-                                        return (
-                                            <button
-                                                key={item.label}
-                                                type="button"
-                                                onClick={() => {
-                                                    setDropdownOpen(false);
-                                                    updateFilter({ kategori: item.key, instansi: null });
-                                                }}
-                                                className={`rounded-lg px-2.5 py-1.5 text-left text-xs font-medium ${
-                                                    active
-                                                        ? 'btn-primary-pill text-center'
-                                                        : 'surface-card text-ink-secondary hover:text-ink-primary'
-                                                }`}
-                                            >
-                                                {item.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="max-h-52 overflow-y-auto pr-1">
-                                    {visibleInstansiOptions.map((opt) => {
-                                        const isSelected = filters.instansi === opt.id;
-                                        return (
-                                            <button
-                                                key={opt.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setDropdownOpen(false);
-                                                    updateFilter({
-                                                        instansi: isSelected ? null : opt.id,
-                                                    });
-                                                }}
-                                                className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs ${
-                                                    isSelected
-                                                        ? 'bg-accent-soft font-semibold text-accent'
-                                                        : 'text-ink-primary hover:bg-surface-card'
-                                                }`}
-                                            >
-                                                <span className="truncate">{opt.nama}</span>
-                                                <span className="shrink-0 text-[10px] text-ink-secondary">
-                                                    {KATEGORI_INSTANSI_LABELS[opt.kategori]}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+            <div
+                style={{ animationDelay: '0ms' }}
+                className="surface-card motion-stagger relative z-30 mb-5 flex flex-wrap items-center justify-between gap-4 p-4"
+            >
+                <div className="flex flex-wrap items-center gap-3">
+                    <InstansiKategoriPopover
+                        mode="single"
+                        options={instansiOptions}
+                        kategori={filters.kategori}
+                        selectedId={filters.instansi}
+                        onSelectKategori={(nextKat) =>
+                            updateFilter({ kategori: nextKat, instansi: null })
+                        }
+                        onSelectId={(nextId) => updateFilter({ instansi: nextId })}
+                        triggerLabel={selectorLabel}
+                        buttonClassName="input-control flex h-9 min-w-[240px] items-center justify-between px-3 text-left text-xs"
+                    />
 
                     <div className="flex items-center gap-1.5">
                         <span className="mr-1 text-xs font-medium text-ink-secondary">
@@ -315,7 +231,7 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
             </div>
 
             {/* Tabel Log */}
-            <div className="surface-table overflow-hidden">
+            <div style={{ animationDelay: '65ms' }} className="surface-table motion-stagger relative z-0 overflow-hidden">
                 {rows.data.length === 0 ? (
                     <div className="p-12 text-center">
                         <p className="text-sm font-medium text-ink-secondary">
@@ -383,6 +299,8 @@ export default function Log({ rows, instansiOptions, filters }: LogProps) {
                                             <Link
                                                 key={idx}
                                                 href={link.url}
+                                                prefetch
+                                                cacheFor="10s"
                                                 preserveScroll
                                                 className={`rounded px-2.5 py-1 ${
                                                     link.active

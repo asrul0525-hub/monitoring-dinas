@@ -73,12 +73,16 @@ export function RailNav() {
     const url = page.url;
 
     return (
-        <nav
-            aria-label="Navigasi utama"
-            className="glass-shell fixed left-5 top-1/2 z-40 flex w-16 -translate-y-1/2 flex-col items-center gap-3 rounded-full py-5"
-        >
+        <aside className="relative z-40 hidden w-16 shrink-0 self-stretch md:block">
+            <div className="pointer-events-none sticky top-6 flex h-[calc(100vh-3rem)] items-center">
+                <nav
+                    aria-label="Navigasi utama"
+                    className="glass-shell pointer-events-auto relative z-40 flex w-16 flex-col items-center gap-3 rounded-full py-5"
+                >
             <Link
                 href="/"
+                prefetch
+                cacheFor="10s"
                 title="RADAR HSU — Diskominfosandi Kab. HSU"
                 className="mb-2 flex flex-col items-center"
             >
@@ -100,22 +104,26 @@ export function RailNav() {
                     <Link
                         key={item.href}
                         href={item.href}
+                        prefetch
+                        cacheFor="10s"
                         title={item.label}
                         aria-label={item.label}
                         aria-current={active ? 'page' : undefined}
-                        className={`group relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 active:scale-95 ${
+                        className={`group relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 active:scale-95 ${
                             active
-                                ? 'bg-accent-soft text-accent ring-1 ring-accent'
+                                ? 'bg-accent-soft text-accent shadow-[0_0_16px_var(--accent-soft)] ring-1 ring-accent'
                                 : 'text-ink-secondary hover:bg-surface-elevated hover:text-ink-primary'
                         }`}
                     >
                         {item.icon}
-                        <span className="surface-card pointer-events-none absolute left-14 whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium text-ink-primary opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                        <span className="surface-elevated pointer-events-none absolute left-[68px] z-50 whitespace-nowrap rounded-xl border border-line-strong px-2.5 py-1 text-xs font-semibold text-ink-primary opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-1 group-hover:opacity-100">
                             {item.label}
                         </span>
                     </Link>
                 );
             })}
-        </nav>
+                </nav>
+            </div>
+        </aside>
     );
 }

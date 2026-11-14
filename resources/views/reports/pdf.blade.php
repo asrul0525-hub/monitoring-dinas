@@ -278,6 +278,8 @@
             'vertikal' => 'Instansi Vertikal',
             'dinas' => 'Dinas',
             'kec_kel_pkm' => 'Kec/Kel/PKM',
+            'layanan_pemerintah' => 'Layanan Pemerintah',
+            'layanan_publik' => 'Layanan Publik',
             default => null,
         };
     @endphp
@@ -384,6 +386,8 @@
                     $kategoriLabel = match ($row['kategori'] ?? 'dinas') {
                         'vertikal' => 'Instansi Vertikal',
                         'kec_kel_pkm' => 'Kec/Kel/PKM',
+                        'layanan_pemerintah' => 'Layanan Pemerintah',
+                        'layanan_publik' => 'Layanan Publik',
                         default => 'Dinas',
                     };
                 @endphp

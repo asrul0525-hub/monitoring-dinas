@@ -145,3 +145,27 @@ it('POST /notifikasi/dibaca mengatur alerts.count menjadi 0 pada request berikut
             ->where('alerts.count', 0)
         );
 });
+
+it('POST /notifikasi/dibaca mengembalikan JSON tanpa redirect untuk permintaan async View-then-Clear', function () {
+    $user = User::factory()->create([
+        'alerts_seen_at' => now()->subHours(5),
+    ]);
+
+    Instansi::factory()->create([
+        'nama' => 'Dinas Down JSON Test',
+        'status' => Status::TidakAktif,
+        'down_since' => now()->subHour(),
+    ]);
+
+    $this->actingAs($user)
+        ->postJson('/notifikasi/dibaca')
+        ->assertOk()
+        ->assertJson(['ok' => true]);
+
+    $this->actingAs($user)
+        ->get('/')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('alerts.count', 0)
+            ->has('alerts.items', 0)
+        );
+});

@@ -2,7 +2,7 @@ import { SharedProps, StatusKey } from '@/types/monitoring';
 import { Link, usePage } from '@inertiajs/react';
 
 interface StatusTabsProps {
-    activeStatus?: StatusKey | null;
+    activeStatus?: StatusKey | 'perlu-perhatian' | null;
 }
 
 export function StatusTabs({ activeStatus = null }: StatusTabsProps) {
@@ -48,7 +48,7 @@ export function StatusTabs({ activeStatus = null }: StatusTabsProps) {
         <div
             role="navigation"
             aria-label="Filter status instansi"
-            className="glass-shell fixed bottom-5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 rounded-full px-2.5 py-1.5"
+            className="glass-shell fixed bottom-4 left-1/2 z-30 flex max-w-[calc(100vw-1.5rem)] -translate-x-1/2 items-center gap-1.5 overflow-x-auto whitespace-nowrap rounded-full px-2.5 py-1.5"
         >
             {tabs.map((tab) => {
                 const selected = activeStatus === tab.key;
@@ -56,8 +56,10 @@ export function StatusTabs({ activeStatus = null }: StatusTabsProps) {
                     <Link
                         key={tab.label}
                         href={tab.href}
+                        prefetch
+                        cacheFor="10s"
                         aria-current={selected ? 'page' : undefined}
-                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                        className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-200 hover:-translate-y-0.5 ${
                             selected
                                 ? 'btn-primary-pill'
                                 : 'text-ink-secondary hover:bg-surface-elevated hover:text-ink-primary'

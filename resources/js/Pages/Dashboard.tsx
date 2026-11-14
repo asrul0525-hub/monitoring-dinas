@@ -1,13 +1,17 @@
 import { KategoriBreakdownItem, StatusBarChart } from '@/Components/charts/StatusBarChart';
 import { AppShell } from '@/Components/shell/AppShell';
 import { FreshnessText } from '@/Components/status/FreshnessText';
+import { HttpCodeBadge } from '@/Components/status/HttpCodeBadge';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatMs, formatRelativeId, formatTimeWita } from '@/lib/format';
-import { InstansiRow, SharedProps } from '@/types/monitoring';
+import { InstansiRow, KATEGORI_INSTANSI_LABELS, SharedProps } from '@/types/monitoring';
 import { Link, usePage } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 
 type DashboardProps = SharedProps & {
     attention: InstansiRow[];
+    attentionStale?: InstansiRow[];
+    attentionReasons?: Record<number, string>;
     fastest: InstansiRow[];
     stalest: InstansiRow[];
     failedLastCycle: number;
@@ -19,8 +23,12 @@ type DashboardProps = SharedProps & {
     kategoriBreakdown?: KategoriBreakdownItem[];
 };
 
+type AttentionTab = 'all' | 'tidak-aktif' | 'kurang-aktif';
+
 export default function Dashboard({
     attention,
+    attentionStale = [],
+    attentionReasons = {},
     fastest,
     stalest,
     failedLastCycle,
@@ -28,10 +36,61 @@ export default function Dashboard({
     kategoriBreakdown = [],
 }: DashboardProps) {
     const { statusCounts, schedule } = usePage<DashboardProps>().props;
+    const [attentionTab, setAttentionTab] = useState<AttentionTab>('all');
+
     const checkedCount =
         statusCounts.aktif + statusCounts['kurang-aktif'] + statusCounts['tidak-aktif'];
     const totalCount = checkedCount + statusCounts.menunggu;
     const maxFastMs = Math.max(1, ...fastest.map((r) => r.lastResponseMs ?? 1));
+
+    const downCount = statusCounts['tidak-aktif'];
+    const staleCount = statusCounts['kurang-aktif'];
+    const problemTotal = downCount + staleCount;
+
+    const visibleAttention = useMemo(() => {
+        if (attentionTab === 'tidak-aktif') {
+            return attention.filter((item) => item.status === 'tidak-aktif').slice(0, 6);
+        }
+        if (attentionTab === 'kurang-aktif') {
+            const source =
+                attentionStale.length > 0
+                    ? attentionStale
+                    : attention.filter((item) => item.status === 'kurang-aktif');
+            return source.slice(0, 6);
+        }
+        return attention.slice(0, 6);
+    }, [attention, attentionStale, attentionTab]);
+
+    const attentionSubtitle = useMemo(() => {
+        if (problemTotal === 0) {
+            return 'Instansi berstatus Tidak Aktif dan Kurang Aktif yang membutuhkan tindak lanjut';
+        }
+        if (attentionTab === 'tidak-aktif') {
+            return `Menampilkan ${visibleAttention.length} dari ${downCount} instansi Tidak Aktif`;
+        }
+        if (attentionTab === 'kurang-aktif') {
+            return `Menampilkan ${visibleAttention.length} dari ${staleCount} instansi Kurang Aktif`;
+        }
+        return `Menampilkan ${visibleAttention.length} dari ${problemTotal} instansi bermasalah`;
+    }, [attentionTab, visibleAttention.length, downCount, staleCount, problemTotal]);
+
+    const seeAllHref =
+        attentionTab === 'tidak-aktif'
+            ? '/instansi?status=tidak-aktif'
+            : attentionTab === 'kurang-aktif'
+              ? '/instansi?status=kurang-aktif'
+              : downCount > 0 && staleCount === 0
+                ? '/instansi?status=tidak-aktif'
+                : staleCount > 0 && downCount === 0
+                  ? '/instansi?status=kurang-aktif'
+                  : '/instansi?status=perlu-perhatian';
+
+    const seeAllLabel =
+        attentionTab === 'tidak-aktif'
+            ? `Lihat semua (${downCount})`
+            : attentionTab === 'kurang-aktif'
+              ? `Lihat semua (${staleCount})`
+              : `Lihat semua (${problemTotal})`;
 
     if (totalCount === 0) {
         return (
@@ -65,9 +124,12 @@ export default function Dashboard({
             showStatusTabs
             activeStatus={null}
         >
-            <div className="grid grid-cols-12 items-start gap-5">
+            <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
                 {/* Large card 1: Horizontal Bar Chart */}
-                <section className="surface-card col-span-5 flex flex-col justify-between p-6">
+                <section
+                    style={{ animationDelay: '0ms' }}
+                    className="surface-card motion-stagger motion-card-hover flex flex-col justify-between p-6 lg:col-span-5"
+                >
                     <div>
                         <h2 className="text-base font-semibold text-ink-primary">
                             Status {checkedCount} dari {totalCount} website per cek terakhir
@@ -86,64 +148,113 @@ export default function Dashboard({
                 </section>
 
                 {/* Large card 2: Perlu perhatian */}
-                <section className="surface-card col-span-7 flex flex-col justify-between p-6">
+                <section
+                    style={{ animationDelay: '55ms' }}
+                    className="surface-card motion-stagger motion-card-hover flex flex-col justify-between p-6 lg:col-span-7"
+                >
                     <div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <h2 className="text-base font-semibold text-ink-primary">Perlu Perhatian</h2>
-                                <p className="mt-0.5 text-xs text-ink-secondary">
-                                    Instansi berstatus Tidak Aktif dan Kurang Aktif yang membutuhkan tindak lanjut
-                                </p>
+                                <p className="mt-0.5 text-xs text-ink-secondary">{attentionSubtitle}</p>
                             </div>
-                            <Link
-                                href="/instansi?status=tidak-aktif"
-                                className="text-xs font-medium text-accent hover:underline"
-                            >
-                                Lihat semua
-                            </Link>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                                {[
+                                    { key: 'all' as const, label: `Semua (${problemTotal})` },
+                                    { key: 'tidak-aktif' as const, label: `Tidak Aktif (${downCount})` },
+                                    { key: 'kurang-aktif' as const, label: `Kurang Aktif (${staleCount})` },
+                                ].map((tab) => {
+                                    const active = attentionTab === tab.key;
+                                    return (
+                                        <button
+                                            key={tab.key}
+                                            type="button"
+                                            onClick={() => setAttentionTab(tab.key)}
+                                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                                                active
+                                                    ? 'btn-primary-pill'
+                                                    : 'surface-elevated text-ink-secondary hover:text-ink-primary'
+                                            }`}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
-                        {attention.length === 0 ? (
+                        {visibleAttention.length === 0 ? (
                             <div className="surface-elevated mt-6 rounded-xl p-6 text-center text-xs text-ink-secondary">
-                                Seluruh website instansi yang sudah dicek berada dalam status Aktif.
+                                {attentionTab === 'tidak-aktif'
+                                    ? 'Tidak ada website instansi yang berstatus Tidak Aktif.'
+                                    : attentionTab === 'kurang-aktif'
+                                      ? 'Tidak ada website instansi yang berstatus Kurang Aktif.'
+                                      : 'Seluruh website instansi yang sudah dicek berada dalam status Aktif.'}
                             </div>
                         ) : (
                             <ul className="mt-4 space-y-2">
-                                {attention.slice(0, 6).map((item) => (
-                                    <li key={item.id}>
-                                        <Link
-                                            href={`/instansi/${item.id}`}
-                                            className="surface-elevated flex items-center justify-between gap-4 rounded-xl px-4 py-2.5 transition-colors hover:border-line-strong"
-                                        >
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="truncate text-sm font-medium text-ink-primary">
-                                                        {item.nama}
-                                                    </span>
-                                                    <StatusBadge status={item.status} size="sm" />
+                                {visibleAttention.map((item) => {
+                                    const reason = attentionReasons[item.id] ?? null;
+                                    return (
+                                        <li key={item.id}>
+                                            <Link
+                                                href={`/instansi/${item.id}`}
+                                                prefetch
+                                                cacheFor="10s"
+                                                className="surface-elevated motion-card-hover flex items-center justify-between gap-4 rounded-xl px-4 py-2.5 transition-colors hover:border-line-strong"
+                                            >
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <span className="truncate text-sm font-medium text-ink-primary">
+                                                            {item.nama}
+                                                        </span>
+                                                        <StatusBadge status={item.status} size="sm" />
+                                                    </div>
+                                                    <p className="mt-0.5 truncate text-xs text-ink-secondary">
+                                                        <FreshnessText row={item} />
+                                                        {reason ? ` · ${reason}` : ''}
+                                                    </p>
                                                 </div>
-                                                <p className="mt-0.5 text-xs text-ink-secondary">
-                                                    <FreshnessText row={item} />
-                                                </p>
-                                            </div>
 
-                                            <div className="tabular-nums shrink-0 text-right text-xs text-ink-secondary">
-                                                {item.status === 'tidak-aktif'
-                                                    ? item.lastHttpCode
-                                                        ? `HTTP ${item.lastHttpCode}`
-                                                        : 'Timeout'
-                                                    : formatMs(item.lastResponseMs)}
-                                            </div>
-                                        </Link>
-                                    </li>
-                                ))}
+                                                <div className="tabular-nums shrink-0 text-right text-xs text-ink-secondary">
+                                                    {item.status === 'tidak-aktif' ? (
+                                                        <HttpCodeBadge
+                                                            code={item.lastHttpCode}
+                                                            status={item.status}
+                                                            error={reason}
+                                                            neverChecked={!item.lastCheckedAt}
+                                                        />
+                                                    ) : (
+                                                        formatMs(item.lastResponseMs)
+                                                    )}
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    );
+                                })}
                             </ul>
+                        )}
+
+                        {problemTotal > 0 && (
+                            <div className="mt-3 flex justify-end border-t border-line-subtle pt-3">
+                                <Link
+                                    href={seeAllHref}
+                                    prefetch
+                                    cacheFor="10s"
+                                    className="text-xs font-medium text-accent hover:underline"
+                                >
+                                    {seeAllLabel} →
+                                </Link>
+                            </div>
                         )}
                     </div>
                 </section>
 
                 {/* Medium card 1: Top 5 Tercepat */}
-                <section className="surface-card col-span-4 p-6">
+                <section
+                    style={{ animationDelay: '110ms' }}
+                    className="surface-card motion-stagger motion-card-hover p-6 lg:col-span-4"
+                >
                     <h2 className="text-base font-semibold text-ink-primary">Top 5 Website Tercepat</h2>
                     <p className="mt-0.5 text-xs text-ink-secondary">Waktu respons HTTP terendah pada cek terakhir</p>
 
@@ -158,20 +269,27 @@ export default function Dashboard({
                                     <li key={item.id}>
                                         <Link
                                             href={`/instansi/${item.id}`}
+                                            prefetch
+                                            cacheFor="10s"
                                             className="group block rounded-lg p-1.5 transition-colors hover:bg-surface-elevated"
                                         >
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="font-medium text-ink-primary group-hover:text-accent">
-                                                    {idx + 1}. {item.nama}
-                                                </span>
-                                                <span className="tabular-nums font-semibold text-status-aktif">
+                                            <div className="flex items-center justify-between gap-2 text-xs">
+                                                <div className="flex min-w-0 items-center gap-2">
+                                                    <span className="truncate font-medium text-ink-primary group-hover:text-accent">
+                                                        {idx + 1}. {item.nama}
+                                                    </span>
+                                                    <span className="surface-elevated shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium text-ink-secondary">
+                                                        {KATEGORI_INSTANSI_LABELS[item.kategori] ?? item.kategori}
+                                                    </span>
+                                                </div>
+                                                <span className="tabular-nums shrink-0 font-semibold text-status-aktif">
                                                     {formatMs(item.lastResponseMs)}
                                                 </span>
                                             </div>
                                             <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-elevated">
                                                 <div
-                                                    className="status-dot--aktif h-full rounded-full"
-                                                    style={{ width: `${widthPct}%` }}
+                                                    className="status-dot--aktif motion-bar h-full rounded-full"
+                                                    style={{ width: `${widthPct}%`, animationDelay: `${idx * 45}ms` }}
                                                 />
                                             </div>
                                         </Link>
@@ -183,7 +301,10 @@ export default function Dashboard({
                 </section>
 
                 {/* Medium card 2: Top 5 Paling Usang */}
-                <section className="surface-card col-span-5 p-6">
+                <section
+                    style={{ animationDelay: '165ms' }}
+                    className="surface-card motion-stagger motion-card-hover p-6 lg:col-span-5"
+                >
                     <h2 className="text-base font-semibold text-ink-primary">Top 5 Website Paling Usang</h2>
                     <p className="mt-0.5 text-xs text-ink-secondary">Rentang waktu terlama sejak pembaruan konten terakhir</p>
 
@@ -205,12 +326,19 @@ export default function Dashboard({
                                     <li key={item.id}>
                                         <Link
                                             href={`/instansi/${item.id}`}
-                                            className="surface-elevated flex items-center justify-between rounded-xl px-3.5 py-2.5 transition-colors hover:border-line-strong"
+                                            prefetch
+                                            cacheFor="10s"
+                                            className="surface-elevated motion-card-hover flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5 transition-colors hover:border-line-strong"
                                         >
                                             <div className="min-w-0">
-                                                <p className="truncate text-xs font-medium text-ink-primary">
-                                                    {idx + 1}. {item.nama}
-                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="truncate text-xs font-medium text-ink-primary">
+                                                        {idx + 1}. {item.nama}
+                                                    </p>
+                                                    <span className="surface-card shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium text-ink-secondary">
+                                                        {KATEGORI_INSTANSI_LABELS[item.kategori] ?? item.kategori}
+                                                    </span>
+                                                </div>
                                                 <p className="mt-0.5 text-[11px] text-ink-secondary">
                                                     {item.lastContentAt
                                                         ? `Terakhir update: ${formatRelativeId(item.lastContentAt)}`
@@ -229,7 +357,10 @@ export default function Dashboard({
                 </section>
 
                 {/* Small card: Ringkasan Jadwal */}
-                <section className="surface-card col-span-3 p-6">
+                <section
+                    style={{ animationDelay: '220ms' }}
+                    className="surface-card motion-stagger motion-card-hover p-6 lg:col-span-3"
+                >
                     <div className="flex items-start justify-between gap-2">
                         <div>
                             <h2 className="text-base font-semibold text-ink-primary">Jadwal Pengecekan</h2>
@@ -237,6 +368,8 @@ export default function Dashboard({
                         </div>
                         <Link
                             href="/pengaturan"
+                            prefetch
+                            cacheFor="10s"
                             title={
                                 schedule.schedulerActive
                                     ? 'Mesin scheduler cron aktif berjalan otomatis'

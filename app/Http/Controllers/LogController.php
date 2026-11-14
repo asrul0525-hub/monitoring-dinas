@@ -16,7 +16,7 @@ class LogController extends Controller
         $instansiId = is_numeric($instansiFilter) ? (int) $instansiFilter : null;
 
         $kategoriFilter = $request->query('kategori');
-        $kategori = is_string($kategoriFilter) && in_array($kategoriFilter, ['vertikal', 'dinas', 'kec_kel_pkm'], true)
+        $kategori = is_string($kategoriFilter) && in_array($kategoriFilter, Instansi::KATEGORI_KEYS, true)
             ? $kategoriFilter
             : null;
 

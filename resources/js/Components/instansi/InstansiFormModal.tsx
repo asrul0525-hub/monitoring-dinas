@@ -16,6 +16,8 @@ const KATEGORI_OPTIONS: { value: KategoriInstansiKey; label: string }[] = [
     { value: 'vertikal', label: KATEGORI_INSTANSI_LABELS.vertikal },
     { value: 'dinas', label: KATEGORI_INSTANSI_LABELS.dinas },
     { value: 'kec_kel_pkm', label: KATEGORI_INSTANSI_LABELS.kec_kel_pkm },
+    { value: 'layanan_pemerintah', label: KATEGORI_INSTANSI_LABELS.layanan_pemerintah },
+    { value: 'layanan_publik', label: KATEGORI_INSTANSI_LABELS.layanan_publik },
 ];
 
 export function InstansiFormModal({ open, editing, onClose }: InstansiFormModalProps) {

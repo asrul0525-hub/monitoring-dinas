@@ -1,3 +1,5 @@
+import { InstansiKategoriPopover } from '@/Components/filters/InstansiKategoriPopover';
+import { StatusFilterPopover } from '@/Components/filters/StatusFilterPopover';
 import { AppShell } from '@/Components/shell/AppShell';
 import { StatusBadge } from '@/Components/status/StatusBadge';
 import { formatMs } from '@/lib/format';
@@ -40,13 +42,6 @@ interface LaporanProps extends SharedProps {
 
 const columnHelper = createColumnHelper<ReportRow>();
 
-const KATEGORI_LIST: { key: KategoriInstansiKey | ''; label: string }[] = [
-    { key: '', label: 'Semua Instansi' },
-    { key: 'vertikal', label: 'Instansi Vertikal' },
-    { key: 'dinas', label: 'Dinas' },
-    { key: 'kec_kel_pkm', label: 'Kec/Kel/PKM' },
-];
-
 export default function Laporan({ rows, instansiOptions, filters }: LaporanProps) {
     const { errors } = usePage().props as { errors: Record<string, string> };
 
@@ -55,7 +50,6 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
     const [dari, setDari] = useState<string>(filters.dari);
     const [sampai, setSampai] = useState<string>(filters.sampai);
     const [status, setStatus] = useState<string>(filters.status ?? '');
-    const [dropdownOpen, setDropdownOpen] = useState(false);
     const [sorting, setSorting] = useState<SortingState>([]);
 
     const applyFilters = (next: {
@@ -86,7 +80,6 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
 
     const handleFormSubmit = (e: FormEvent) => {
         e.preventDefault();
-        setDropdownOpen(false);
         applyFilters({ instansi: selectedInstansi, kategori, dari, sampai, status });
     };
 
@@ -124,20 +117,19 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
     };
 
     const toggleInstansi = (id: number) => {
-        setSelectedInstansi((prev) =>
-            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-        );
+        const nextIds = selectedInstansi.includes(id)
+            ? selectedInstansi.filter((item) => item !== id)
+            : [...selectedInstansi, id];
+        setSelectedInstansi(nextIds);
+        applyFilters({ instansi: nextIds, kategori, dari, sampai, status });
     };
 
-    const selectCategory = (nextKat: KategoriInstansiKey | '') => {
-        setKategori(nextKat);
+    const selectCategory = (nextKat: KategoriInstansiKey | null) => {
+        const nextKategori = nextKat ?? '';
+        setKategori(nextKategori);
         setSelectedInstansi([]);
+        applyFilters({ instansi: [], kategori: nextKategori, dari, sampai, status });
     };
-
-    const visibleInstansiOptions = useMemo(() => {
-        if (!kategori) return instansiOptions;
-        return instansiOptions.filter((opt) => opt.kategori === kategori);
-    }, [instansiOptions, kategori]);
 
     const selectorButtonLabel = useMemo(() => {
         if (selectedInstansi.length > 0) {
@@ -187,19 +179,32 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
         () => [
             columnHelper.accessor('nama', {
                 header: 'Nama Instansi',
-                cell: (info) => (
-                    <div>
-                        <Link
-                            href={`/instansi/${info.row.original.instansiId}`}
-                            className="font-semibold text-ink-primary transition-colors hover:text-accent"
-                        >
-                            {info.getValue()}
-                        </Link>
-                        <div className="font-mono text-xs text-ink-secondary">
-                            {info.row.original.url}
+                cell: (info) => {
+                    const row = info.row.original;
+                    return (
+                        <div>
+                            <Link
+                                href={`/instansi/${row.instansiId}`}
+                                prefetch
+                                cacheFor="10s"
+                                className="font-semibold text-ink-primary transition-colors hover:text-accent"
+                            >
+                                {info.getValue()}
+                            </Link>
+                            <div>
+                                <a
+                                    href={row.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 font-mono text-xs text-ink-secondary transition-colors hover:text-accent"
+                                >
+                                    <span>{row.url}</span>
+                                    <span aria-hidden="true">↗</span>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                ),
+                    );
+                },
             }),
             columnHelper.accessor('kategori', {
                 header: 'Kategori',
@@ -330,85 +335,30 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             }
         >
             {/* Filter Bar */}
-            <form onSubmit={handleFormSubmit} className="surface-card mb-6 p-4">
-                <div className="grid grid-cols-12 items-end gap-3">
+            <form
+                onSubmit={handleFormSubmit}
+                style={{ animationDelay: '0ms' }}
+                className="surface-card motion-stagger relative z-30 mb-6 p-4"
+            >
+                <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-12">
                     {/* Multi-select Instansi + Kategori Instansi */}
-                    <div className="relative col-span-2">
+                    <div className="lg:col-span-2">
                         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
                             Instansi &amp; Kategori
                         </label>
-                        <button
-                            type="button"
-                            onClick={() => setDropdownOpen((v) => !v)}
-                            className="input-control flex h-10 w-full items-center justify-between px-3 text-left text-xs"
-                        >
-                            <span className="truncate">{selectorButtonLabel}</span>
-                            <span className="ml-2 text-xs text-ink-secondary">▾</span>
-                        </button>
-
-                        {dropdownOpen && (
-                            <div className="surface-elevated animate-modal-pop absolute left-0 top-full z-30 mt-1 w-80 rounded-xl p-3 shadow-2xl">
-                                <div className="mb-2 flex items-center justify-between border-b border-line-subtle pb-2 text-xs">
-                                    <span className="font-semibold text-ink-primary">
-                                        Pilih Kategori / Instansi
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDropdownOpen(false)}
-                                        className="text-ink-secondary hover:text-ink-primary"
-                                    >
-                                        Tutup
-                                    </button>
-                                </div>
-
-                                {/* Pilihan Kategori Instansi */}
-                                <div className="mb-2.5 grid grid-cols-2 gap-1.5 border-b border-line-subtle pb-2.5">
-                                    {KATEGORI_LIST.map((item) => {
-                                        const active = kategori === item.key && selectedInstansi.length === 0;
-                                        return (
-                                            <button
-                                                key={item.label}
-                                                type="button"
-                                                onClick={() => selectCategory(item.key)}
-                                                className={`rounded-lg px-2.5 py-1.5 text-left text-xs font-medium ${
-                                                    active
-                                                        ? 'btn-primary-pill text-center'
-                                                        : 'surface-card text-ink-secondary hover:text-ink-primary'
-                                                }`}
-                                            >
-                                                {item.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="max-h-52 overflow-y-auto pr-1">
-                                    {visibleInstansiOptions.map((opt) => (
-                                        <label
-                                            key={opt.id}
-                                            className="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs text-ink-primary hover:bg-surface-card"
-                                        >
-                                            <span className="flex items-center gap-2 truncate">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedInstansi.includes(opt.id)}
-                                                    onChange={() => toggleInstansi(opt.id)}
-                                                    className="rounded border-line-strong"
-                                                />
-                                                <span className="truncate">{opt.nama}</span>
-                                            </span>
-                                            <span className="shrink-0 text-[10px] text-ink-secondary">
-                                                {KATEGORI_INSTANSI_LABELS[opt.kategori]}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                        <InstansiKategoriPopover
+                            mode="multiple"
+                            options={instansiOptions}
+                            kategori={kategori || null}
+                            selectedIds={selectedInstansi}
+                            onSelectKategori={selectCategory}
+                            onToggleId={toggleInstansi}
+                            triggerLabel={selectorButtonLabel}
+                        />
                     </div>
 
                     {/* Preset Periode */}
-                    <div className="col-span-2">
+                    <div className="lg:col-span-2">
                         <label className="mb-1.5 block text-xs font-medium text-ink-secondary">
                             Preset Periode
                         </label>
@@ -431,7 +381,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     </div>
 
                     {/* Dari & Sampai */}
-                    <div className="col-span-2">
+                    <div className="lg:col-span-2">
                         <label
                             htmlFor="filter-dari"
                             className="mb-1.5 block text-xs font-medium text-ink-secondary"
@@ -447,7 +397,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                         />
                     </div>
 
-                    <div className="col-span-2">
+                    <div className="lg:col-span-2">
                         <label
                             htmlFor="filter-sampai"
                             className="mb-1.5 block text-xs font-medium text-ink-secondary"
@@ -464,28 +414,31 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                     </div>
 
                     {/* Status Akhir Periode */}
-                    <div className="col-span-2">
+                    <div className="lg:col-span-2">
                         <label
                             htmlFor="filter-status"
                             className="mb-1.5 block text-xs font-medium text-ink-secondary"
                         >
                             Status Akhir Periode
                         </label>
-                        <select
+                        <StatusFilterPopover
                             id="filter-status"
                             value={status}
-                            onChange={(e) => setStatus(e.target.value)}
-                            className="input-control h-10 w-full px-3 text-xs"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="aktif">Aktif</option>
-                            <option value="kurang-aktif">Kurang Aktif</option>
-                            <option value="tidak-aktif">Tidak Aktif</option>
-                        </select>
+                            onChange={(nextStatus) => {
+                                setStatus(nextStatus);
+                                applyFilters({
+                                    instansi: selectedInstansi,
+                                    kategori,
+                                    dari,
+                                    sampai,
+                                    status: nextStatus,
+                                });
+                            }}
+                        />
                     </div>
 
                     {/* Tombol Terapkan & Reset */}
-                    <div className="col-span-2 flex items-center gap-2">
+                    <div className="flex items-center gap-2 lg:col-span-2">
                         <button
                             type="submit"
                             className="btn-primary-pill h-10 flex-1 whitespace-nowrap px-3.5 text-xs"
@@ -511,8 +464,11 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             </form>
 
             {/* Ringkasan Periode */}
-            <div className="mb-6 grid grid-cols-4 gap-4">
-                <div className="surface-card p-4">
+            <div
+                style={{ animationDelay: '60ms' }}
+                className="motion-stagger relative z-10 mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            >
+                <div className="surface-card motion-card-hover p-4">
                     <div className="text-xs font-medium text-ink-secondary">
                         Rata-rata Uptime Periode
                     </div>
@@ -520,7 +476,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                         {summary.avgUptime !== null ? `${summary.avgUptime}%` : '—'}
                     </div>
                 </div>
-                <div className="surface-card p-4">
+                <div className="surface-card motion-card-hover p-4">
                     <div className="text-xs font-medium text-ink-secondary">
                         Total Kejadian Down
                     </div>
@@ -528,7 +484,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                         {summary.totalDown}
                     </div>
                 </div>
-                <div className="surface-card p-4">
+                <div className="surface-card motion-card-hover p-4">
                     <div className="text-xs font-medium text-ink-secondary">
                         Tidak Aktif di Akhir Periode
                     </div>
@@ -536,7 +492,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
                         {summary.endDownCount}
                     </div>
                 </div>
-                <div className="surface-card p-4">
+                <div className="surface-card motion-card-hover p-4">
                     <div className="text-xs font-medium text-ink-secondary">
                         Tanpa Update &gt; 30 Hari
                     </div>
@@ -547,7 +503,7 @@ export default function Laporan({ rows, instansiOptions, filters }: LaporanProps
             </div>
 
             {/* Tabel Laporan Solid Kontras Tinggi */}
-            <div className="surface-table overflow-hidden">
+            <div style={{ animationDelay: '120ms' }} className="surface-table motion-stagger relative z-0 overflow-hidden">
                 {rows.length === 0 ? (
                     <div className="p-12 text-center">
                         <p className="text-base font-medium text-ink-secondary">

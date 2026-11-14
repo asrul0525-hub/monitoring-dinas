@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Status;
+use App\Models\Check;
 use App\Models\Instansi;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -81,10 +82,44 @@ it('mengurutkan attention (tidak-aktif terlama dulu lalu kurang-aktif terlama du
             ->where('fastest.0.id', $fastActive->id)
             ->where('fastest.1.id', $staleNew->id)
             ->where('fastest.2.id', $staleOld->id)
+            ->has('stalest', 3)
             ->where('stalest.0.id', $staleOld->id)
             ->where('stalest.1.id', $staleNew->id)
+            ->where('stalest.2.id', $fastActive->id)
             ->where('failedLastCycle', 2)
             ->has('kpi')
-            ->has('kategoriBreakdown', 3)
+            ->has('kategoriBreakdown', 5)
+        );
+});
+
+it('mengirimkan attentionStale dan attentionReasons dari check terbaru untuk tab Perlu Perhatian', function () {
+    $user = User::factory()->create();
+
+    $down = Instansi::factory()->create([
+        'nama' => 'Instansi Soft-200',
+        'status' => Status::TidakAktif,
+        'down_since' => now()->subHours(4),
+        'last_http_code' => 200,
+    ]);
+    Check::factory()->create([
+        'instansi_id' => $down->id,
+        'http_code' => 200,
+        'status' => Status::TidakAktif,
+        'error' => 'Situs Ditutup (This site has been closed)',
+    ]);
+
+    $stale = Instansi::factory()->create([
+        'nama' => 'Instansi Usang',
+        'status' => Status::KurangAktif,
+        'last_content_at' => now()->subDays(90),
+    ]);
+
+    $this->actingAs($user)
+        ->get('/')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('attentionStale', 1)
+            ->where('attentionStale.0.id', $stale->id)
+            ->where("attentionReasons.{$down->id}", 'Situs Ditutup (This site has been closed)')
         );
 });

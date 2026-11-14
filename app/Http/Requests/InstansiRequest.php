@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Instansi;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -46,7 +47,7 @@ class InstansiRequest extends FormRequest
 
         return [
             'nama' => ['required', 'string', 'max:255'],
-            'kategori' => ['required', 'string', Rule::in(['vertikal', 'dinas', 'kec_kel_pkm'])],
+            'kategori' => ['required', 'string', Rule::in(Instansi::KATEGORI_KEYS)],
             'url' => [
                 'required',
                 'string',

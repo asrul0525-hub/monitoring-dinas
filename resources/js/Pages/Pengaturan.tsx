@@ -2,8 +2,8 @@ import { AppShell } from '@/Components/shell/AppShell';
 import { ThemeToggle } from '@/Components/shell/ThemeToggle';
 import { formatDateTimeId, formatRelativeId } from '@/lib/format';
 import { SharedProps } from '@/types/monitoring';
-import { useForm } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
+import { FormEventHandler, useState } from 'react';
 
 interface PengaturanProps extends SharedProps {
     settings: {
@@ -38,6 +38,9 @@ const INTERVAL_OPTIONS = [
 ];
 
 export default function Pengaturan({ settings }: PengaturanProps) {
+    const { auth } = usePage<SharedProps>().props;
+    const [checkingAll, setCheckingAll] = useState(false);
+
     const monitorForm = useForm({
         freshness_days: settings.freshnessDays,
         check_interval_hours: settings.checkIntervalHours,
@@ -52,6 +55,19 @@ export default function Pengaturan({ settings }: PengaturanProps) {
         password: '',
         password_confirmation: '',
     });
+
+    const handleCheckAll = () => {
+        if (checkingAll) return;
+        router.post(
+            '/cek-semua',
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setCheckingAll(true),
+                onFinish: () => setCheckingAll(false),
+            },
+        );
+    };
 
     const submitMonitor: FormEventHandler = (e) => {
         e.preventDefault();
@@ -73,10 +89,13 @@ export default function Pengaturan({ settings }: PengaturanProps) {
             title="Pengaturan Sistem & Akun"
             subtitle="Konfigurasi parameter keaktifan konten website dinas, preferensi tampilan, dan keamanan akun Super Admin."
         >
-            <div className="grid grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Parameter Monitoring */}
-                <div className="col-span-6 space-y-6">
-                    <section className="surface-card p-6">
+                <div className="space-y-6 lg:col-span-6">
+                    <section
+                        style={{ animationDelay: '0ms' }}
+                        className="surface-card motion-stagger motion-card-hover p-6"
+                    >
                         <h2 className="text-base font-semibold text-ink-primary">
                             Parameter Monitoring
                         </h2>
@@ -154,7 +173,7 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                             </div>
 
                             <div className="surface-elevated rounded-xl p-3.5">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
                                     <span className="text-xs font-medium text-ink-secondary">
                                         Status Mesin Scheduler Otomatis
                                     </span>
@@ -175,11 +194,21 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                         {settings.schedulerActive ? 'Aktif Otomatis' : 'Belum Terdeteksi'}
                                     </span>
                                 </div>
-                                <p className="mt-1.5 text-[11px] text-ink-secondary">
-                                    {settings.lastHeartbeatAt
-                                        ? `Detak terakhir scheduler: ${formatDateTimeId(settings.lastHeartbeatAt)} (${formatRelativeId(settings.lastHeartbeatAt)}).`
-                                        : 'Belum ada detak dari scheduler latar belakang. Pastikan Windows Task Scheduler atau cron server aktif memicu schedule:run.'}
-                                </p>
+                                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                    <p className="text-[11px] text-ink-secondary">
+                                        {settings.lastHeartbeatAt
+                                            ? `Detak terakhir scheduler: ${formatDateTimeId(settings.lastHeartbeatAt)} (${formatRelativeId(settings.lastHeartbeatAt)}).`
+                                            : 'Belum ada detak dari scheduler latar belakang. Pastikan Windows Task Scheduler atau cron server aktif memicu schedule:run.'}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleCheckAll}
+                                        disabled={checkingAll}
+                                        className="btn-secondary shrink-0 px-3 py-1.5 text-xs"
+                                    >
+                                        {checkingAll ? 'Mengecek semua…' : 'Cek Semua Sekarang'}
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="pt-1">
@@ -196,8 +225,11 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                         </form>
                     </section>
 
-                    <section className="surface-card p-6">
-                        <div className="flex items-center justify-between">
+                    <section
+                        style={{ animationDelay: '60ms' }}
+                        className="surface-card motion-stagger motion-card-hover p-6"
+                    >
+                        <div className="flex items-center justify-between gap-4">
                             <div>
                                 <h2 className="text-base font-semibold text-ink-primary">
                                     Preferensi Tema Tampilan
@@ -211,9 +243,12 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                     </section>
                 </div>
 
-                {/* Ganti Password */}
-                <div className="col-span-6">
-                    <section className="surface-card p-6">
+                {/* Ganti Password & Sesi Akun */}
+                <div className="space-y-6 lg:col-span-6">
+                    <section
+                        style={{ animationDelay: '120ms' }}
+                        className="surface-card motion-stagger motion-card-hover p-6"
+                    >
                         <h2 className="text-base font-semibold text-ink-primary">
                             Ganti Kata Sandi Super Admin
                         </h2>
@@ -314,6 +349,48 @@ export default function Pengaturan({ settings }: PengaturanProps) {
                                 )}
                             </div>
                         </form>
+                    </section>
+
+                    <section
+                        style={{ animationDelay: '180ms' }}
+                        className="surface-card motion-stagger motion-card-hover p-6"
+                    >
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="min-w-0">
+                                <h2 className="text-base font-semibold text-ink-primary">
+                                    Sesi &amp; Akun Administrator
+                                </h2>
+                                <p className="mt-1 truncate text-xs text-ink-secondary">
+                                    Masuk sebagai{' '}
+                                    <strong className="text-ink-primary">
+                                        {auth.user?.name ?? 'Admin'}
+                                    </strong>{' '}
+                                    ({auth.user?.email ?? '—'})
+                                </p>
+                            </div>
+                            <Link
+                                href="/logout"
+                                method="post"
+                                as="button"
+                                className="btn-action-delete inline-flex h-10 shrink-0 items-center justify-center gap-2 px-4 text-xs font-semibold"
+                            >
+                                <svg
+                                    className="h-4 w-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.9"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+                                    />
+                                </svg>
+                                <span>Keluar (Logout)</span>
+                            </Link>
+                        </div>
                     </section>
                 </div>
             </div>

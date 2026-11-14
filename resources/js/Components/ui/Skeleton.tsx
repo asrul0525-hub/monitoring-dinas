@@ -11,9 +11,9 @@ export function DashboardSkeleton() {
         <div
             role="status"
             aria-label="Memuat dashboard…"
-            className="animate-page-enter grid grid-cols-12 items-start gap-5"
+            className="animate-page-enter grid grid-cols-1 items-start gap-5 lg:grid-cols-12"
         >
-            <div className="surface-card col-span-5 space-y-4 p-6">
+            <div className="surface-card space-y-4 p-6 lg:col-span-5">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-3.5 w-1/2" />
                 <div className="grid grid-cols-3 gap-2.5 pt-2">
@@ -33,7 +33,7 @@ export function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className="surface-card col-span-7 space-y-3 p-6">
+            <div className="surface-card space-y-3 p-6 lg:col-span-7">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1.5">
                         <Skeleton className="h-5 w-44" />
@@ -48,7 +48,7 @@ export function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className="surface-card col-span-4 space-y-3 p-6">
+            <div className="surface-card space-y-3 p-6 lg:col-span-4">
                 <Skeleton className="h-5 w-48" />
                 <Skeleton className="h-3.5 w-56" />
                 <div className="space-y-3 pt-2">
@@ -58,7 +58,7 @@ export function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className="surface-card col-span-4 space-y-3 p-6">
+            <div className="surface-card space-y-3 p-6 lg:col-span-5">
                 <Skeleton className="h-5 w-48" />
                 <Skeleton className="h-3.5 w-56" />
                 <div className="space-y-2.5 pt-2">
@@ -68,7 +68,7 @@ export function DashboardSkeleton() {
                 </div>
             </div>
 
-            <div className="surface-card col-span-4 space-y-3 p-6">
+            <div className="surface-card space-y-3 p-6 lg:col-span-3">
                 <Skeleton className="h-5 w-40" />
                 <Skeleton className="h-3.5 w-48" />
                 <div className="grid grid-cols-2 gap-3 pt-2">
@@ -86,17 +86,17 @@ export function TablePageSkeleton({ showSummaryStrip = false, showFilterBar = fa
     return (
         <div role="status" aria-label="Memuat tabel…" className="animate-page-enter space-y-5">
             {showFilterBar && (
-                <div className="surface-card grid grid-cols-12 gap-3 p-4">
-                    <Skeleton className="col-span-3 h-10 rounded-xl" />
-                    <Skeleton className="col-span-2 h-10 rounded-xl" />
-                    <Skeleton className="col-span-2 h-10 rounded-xl" />
-                    <Skeleton className="col-span-2 h-10 rounded-xl" />
-                    <Skeleton className="col-span-3 h-10 rounded-xl" />
+                <div className="surface-card grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-12">
+                    <Skeleton className="h-10 rounded-xl lg:col-span-3" />
+                    <Skeleton className="h-10 rounded-xl lg:col-span-2" />
+                    <Skeleton className="h-10 rounded-xl lg:col-span-2" />
+                    <Skeleton className="h-10 rounded-xl lg:col-span-2" />
+                    <Skeleton className="h-10 rounded-xl lg:col-span-3" />
                 </div>
             )}
 
             {showSummaryStrip && (
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="surface-card space-y-2 p-4">
                         <Skeleton className="h-3.5 w-32" />
                         <Skeleton className="h-7 w-20" />
@@ -143,7 +143,7 @@ export function TablePageSkeleton({ showSummaryStrip = false, showFilterBar = fa
 export function DetailPageSkeleton() {
     return (
         <div role="status" aria-label="Memuat detail instansi…" className="animate-page-enter space-y-5">
-            <div className="surface-card grid grid-cols-4 gap-4 p-5">
+            <div className="surface-card grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
                 <Skeleton className="h-14 w-full" />
                 <Skeleton className="h-14 w-full" />
                 <Skeleton className="h-14 w-full" />
@@ -160,8 +160,8 @@ export function DetailPageSkeleton() {
 
 export function SettingsPageSkeleton() {
     return (
-        <div role="status" aria-label="Memuat pengaturan…" className="animate-page-enter grid grid-cols-12 gap-6">
-            <div className="col-span-6 space-y-6">
+        <div role="status" aria-label="Memuat pengaturan…" className="animate-page-enter grid grid-cols-1 gap-6 lg:grid-cols-12">
+            <div className="space-y-6 lg:col-span-6">
                 <div className="surface-card space-y-4 p-6">
                     <Skeleton className="h-5 w-48" />
                     <Skeleton className="h-3.5 w-3/4" />
@@ -177,7 +177,7 @@ export function SettingsPageSkeleton() {
                     <Skeleton className="h-9 w-9 rounded-full" />
                 </div>
             </div>
-            <div className="col-span-6">
+            <div className="lg:col-span-6">
                 <div className="surface-card space-y-4 p-6">
                     <Skeleton className="h-5 w-56" />
                     <Skeleton className="h-3.5 w-2/3" />

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\Status;
+use App\Models\Instansi;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -70,7 +71,7 @@ class ReportFilterRequest extends FormRequest
     {
         $raw = $this->input('kategori');
 
-        return is_string($raw) && in_array($raw, ['vertikal', 'dinas', 'kec_kel_pkm'], true)
+        return is_string($raw) && in_array($raw, Instansi::KATEGORI_KEYS, true)
             ? $raw
             : null;
     }
